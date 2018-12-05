@@ -107,7 +107,9 @@ module.exports = function(
   };
 
   // Setup the browsers list
-  appPackage.browserslist = defaultBrowsers;
+  // Exclude dead selector, cause it's causing a bug in our postcss config
+  // https://github.com/browserslist/browserslist/issues/266
+  appPackage.browserslist = defaultBrowsers.filter(browser => !browser.includes('dead'));
 
   fs.writeFileSync(
     path.join(appPath, 'package.json'),

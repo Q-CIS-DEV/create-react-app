@@ -46,6 +46,9 @@ console.log(
 );
 console.log();
 
+
+// TODO by @deylak when we're ready for distributing, we could make this command work,
+// so users can create fully customizable solutions, but may be we don't want this
 inquirer
   .prompt({
     type: 'confirm',
