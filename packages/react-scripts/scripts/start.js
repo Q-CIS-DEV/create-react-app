@@ -107,7 +107,7 @@ checkBrowsers(paths.appPath, isInteractive)
     const watcher = chokidar.watch(['src', 'public']);
     watcher.on('all', refreshFiles)
 
-    const startProcess = spawn('npm', ['run', 'start'], {
+    const startProcess = spawn(/^win/.test(process.platform) ? 'npm.cmd' : 'npm', ['run', 'start'], {
       stdio: 'inherit',
       cwd: paths.finalProjectDir,
     });
