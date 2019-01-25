@@ -23,7 +23,9 @@ module.exports = () => {
     const clone = gitCloneRepo(
       'git@github.com:Q-CIS-DEV/trood-core-bundler-template.git',
       paths.finalProjectDir,
-      {},
+      {
+        checkout: process.env.TROOD_CORE_VERSION,
+      },
       () => {
         // Copy config files
         configFilesToCopy.forEach(fileName => {
