@@ -6,11 +6,11 @@ const paths = require('../../config/paths');
 
 const gitCloneRepo = require('git-clone');
 
-const libraries = ['businessObjects', 'componentLibraries']
+// const libraries = ['businessObjects', 'componentLibraries']
 const dependeciesOptions = ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies'];
 
 configFilesToCopy = [
-  'src/config.js',
+  // 'src/config.js',
   '.env',
   'package-lock.json',
   'yarn.lock',
@@ -35,7 +35,13 @@ module.exports = () => {
           }
         })
 
+        // Copy src
+        const dirFromPath = `src/`
+        const dirToPath = `${paths.finalProjectDir}/src/`
+        fs.copySync(dirFromPath, dirToPath);
+
         // Copy libraries
+        /*
         libraries.forEach(library => {
           const dirFromPath = `src/${library}`
           const dirToPath = `${paths.finalProjectDir}/src/${library}`
@@ -50,6 +56,7 @@ module.exports = () => {
             }
           });
         });
+        */
 
         // Prepare package.json
         const appPackage = require(path.join(paths.appPath, 'package.json'));
