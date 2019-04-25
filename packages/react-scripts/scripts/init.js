@@ -99,6 +99,10 @@ module.exports = function(
     build: 'react-scripts build',
     test: 'react-scripts test',
     eject: 'react-scripts eject',
+    pot:
+      'rip json2pot \\"./.trood-core/translate/messages/**/*.json\\" -o \\"./translate/index.pot\\"',
+    po:
+      'rip po2json \\"./translate/po/*.po\\" -m \\"./.trood-core/translate/messages/**/*.json\\" -o \\"./.trood-core/public/locale-data\\"',
   };
 
   // Setup the eslint config
@@ -109,7 +113,9 @@ module.exports = function(
   // Setup the browsers list
   // Exclude dead selector, cause it's causing a bug in our postcss config
   // https://github.com/browserslist/browserslist/issues/266
-  appPackage.browserslist = defaultBrowsers.filter(browser => !browser.includes('dead'));
+  appPackage.browserslist = defaultBrowsers.filter(
+    browser => !browser.includes('dead')
+  );
 
   fs.writeFileSync(
     path.join(appPath, 'package.json'),

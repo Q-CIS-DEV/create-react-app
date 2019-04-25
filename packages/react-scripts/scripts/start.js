@@ -84,14 +84,15 @@ if (process.env.HOST) {
 // We require that you explictly set browsers and do not fall back to
 // browserslist defaults.
 const { checkBrowsers } = require('react-dev-utils/browsersHelper');
+const copyAndMerge = require('./utils/copyAndMerge');
 
 const refreshFiles = (event, filePath) => {
   if (event === 'unlink') {
     fs.unlinkSync(path.join(paths.finalProjectDir, filePath));
   } else {
-    fs.copySync(filePath, path.join(paths.finalProjectDir, filePath));
+    copyAndMerge(filePath, path.join(paths.finalProjectDir, filePath));
   }
-}
+};
 
 const createFinalProjectStructure = require('./utils/createFinalProjectStructure');
 checkBrowsers(paths.appPath, isInteractive)
@@ -100,17 +101,21 @@ checkBrowsers(paths.appPath, isInteractive)
     // // run on a different port. `choosePort()` Promise resolves to the next free port.
     // return choosePort(HOST, DEFAULT_PORT);
     await createFinalProjectStructure();
-    const cdCommand = `cd ${paths.finalProjectDir}/`
+    const cdCommand = `cd ${paths.finalProjectDir}/`;
     execSync(`${cdCommand} && npm install`, { stdio: 'inherit' });
 
     // Start watcher, so we can copy src files to dev env
     const watcher = chokidar.watch(['src', 'public']);
-    watcher.on('all', refreshFiles)
+    watcher.on('all', refreshFiles);
 
-    const startProcess = spawn(/^win/.test(process.platform) ? 'npm.cmd' : 'npm', ['run', 'start'], {
-      stdio: 'inherit',
-      cwd: paths.finalProjectDir,
-    });
+    const startProcess = spawn(
+      /^win/.test(process.platform) ? 'npm.cmd' : 'npm',
+      ['run', 'start'],
+      {
+        stdio: 'inherit',
+        cwd: paths.finalProjectDir,
+      }
+    );
   })
   .catch(err => {
     if (err && err.message) {

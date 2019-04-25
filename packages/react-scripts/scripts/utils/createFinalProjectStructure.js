@@ -6,8 +6,17 @@ const paths = require('../../config/paths');
 
 const gitCloneRepo = require('git-clone');
 
-// const libraries = ['businessObjects', 'componentLibraries']
-const dependeciesOptions = ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies'];
+const copyAndMerge = require('./copyAndMerge');
+
+const cssFileRegexp = /\.css$/;
+
+// const libraries = ['businessObjects', 'componentLibraries'];
+const dependeciesOptions = [
+  'dependencies',
+  'devDependencies',
+  'optionalDependencies',
+  'peerDependencies',
+];
 
 configFilesToCopy = [
   // 'src/config.js',
@@ -15,8 +24,7 @@ configFilesToCopy = [
   'package-lock.json',
   'yarn.lock',
   'public',
-]
-
+];
 
 module.exports = () => {
   return new Promise((resolve, reject) => {
@@ -33,12 +41,22 @@ module.exports = () => {
             const toPath = path.join(paths.finalProjectDir, fileName);
             fs.copySync(fileName, toPath);
           }
-        })
+        });
 
         // Copy src
-        const dirFromPath = `src/`
-        const dirToPath = `${paths.finalProjectDir}/src/`
-        fs.copySync(dirFromPath, dirToPath);
+        const dirFromPath = `src/`;
+        const dirToPath = `${paths.finalProjectDir}/src/`;
+        fs.copySync(dirFromPath, dirToPath, {
+          // We use filter function here to traverse directories, so we don't iterate 2 times
+          // Merge css files, so we can extend styles
+          filter: (src, dest) => {
+            if (cssFileRegexp.test(src)) {
+              copyAndMerge(src, dest);
+              return false;
+            }
+            return true;
+          },
+        });
 
         // Copy libraries
         /*
@@ -60,20 +78,26 @@ module.exports = () => {
 
         // Prepare package.json
         const appPackage = require(path.join(paths.appPath, 'package.json'));
-        const finalProjectPackagePath = path.join(paths.finalProjectDir, 'package.json')
+        const finalProjectPackagePath = path.join(
+          paths.finalProjectDir,
+          'package.json'
+        );
         const finalProjectPackage = require(finalProjectPackagePath);
 
-        const finalPackage = dependeciesOptions.reduce((memo, dependecy) => ({
-          ...memo,
-          [dependecy]: {
-            ...finalProjectPackage[dependecy],
-            ...appPackage[dependecy],
-          },
-        }), {
-          ...finalProjectPackage,
-          ...appPackage,
-          scripts: finalProjectPackage.scripts,
-        })
+        const finalPackage = dependeciesOptions.reduce(
+          (memo, dependecy) => ({
+            ...memo,
+            [dependecy]: {
+              ...finalProjectPackage[dependecy],
+              ...appPackage[dependecy],
+            },
+          }),
+          {
+            ...finalProjectPackage,
+            ...appPackage,
+            scripts: finalProjectPackage.scripts,
+          }
+        );
 
         fs.writeFileSync(
           finalProjectPackagePath,
@@ -82,6 +106,6 @@ module.exports = () => {
 
         resolve();
       }
-    )
+    );
   });
-}
+};
