@@ -43,20 +43,21 @@ module.exports = () => {
           }
         });
 
-        // Copy src
-        const dirFromPath = `src/`;
-        const dirToPath = `${paths.finalProjectDir}/src/`;
-        fs.copySync(dirFromPath, dirToPath, {
-          // We use filter function here to traverse directories, so we don't iterate 2 times
-          // Merge css files, so we can extend styles
-          filter: (src, dest) => {
-            if (cssFileRegexp.test(src)) {
-              copyAndMerge(src, dest);
-              return false;
-            }
-            return true;
-          },
-        });
+        ['src', 'translate'].forEach(path => {
+          const fromPath = `${path}/`;
+          const toPath = `${paths.finalProjectDir}/${fromPath}`;
+          fs.copySync(fromPath, toPath, {
+            // We use filter function here to traverse directories, so we don't iterate 2 times
+            // Merge css files, so we can extend styles
+            filter: (src, dest) => {
+              if (cssFileRegexp.test(src)) {
+                copyAndMerge(src, dest);
+                return false;
+              }
+              return true;
+            },
+          });
+        })
 
         // Copy libraries
         /*
