@@ -87,10 +87,17 @@ const { checkBrowsers } = require('react-dev-utils/browsersHelper');
 const copyAndMerge = require('./utils/copyAndMerge');
 
 const refreshFiles = (event, filePath) => {
-  if (event === 'unlink') {
-    fs.unlinkSync(path.join(paths.finalProjectDir, filePath));
+  const finalPath = path.join(paths.finalProjectDir, filePath)
+  if (/^unlink/i.test(event)) {
+    try {
+      fs.removeSync(finalPath);
+    } catch (err) {
+      console.log(err)
+    }
+  } else if (/dir$/i.test(event)) {
+    fs.ensureDirSync(finalPath)
   } else {
-    copyAndMerge(filePath, path.join(paths.finalProjectDir, filePath));
+    copyAndMerge(filePath, finalPath);
   }
 };
 
@@ -102,10 +109,16 @@ checkBrowsers(paths.appPath, isInteractive)
     // return choosePort(HOST, DEFAULT_PORT);
     await createFinalProjectStructure();
     const cdCommand = `cd ${paths.finalProjectDir}/`;
-    execSync(`${cdCommand} && npm install`, { stdio: 'inherit' });
+    if (!process.argv.includes('ignore-npm')) {
+      execSync(`${cdCommand} && npm install`, { stdio: 'inherit' });
+    }
 
     // Start watcher, so we can copy src files to dev env
-    const watcher = chokidar.watch(['src', 'public']);
+    const watcher = chokidar.watch(['src', 'public'], {
+      ignoreInitial: true,
+      followSymlinks: false,
+      cwd: '.',
+    });
     watcher.on('all', refreshFiles);
 
     const startProcess = spawn(
