@@ -99,10 +99,7 @@ module.exports = function(
     build: 'react-scripts build',
     test: 'react-scripts test',
     eject: 'react-scripts eject',
-    pot:
-      'rip json2pot \\"./.trood-core/translate/messages/**/*.json\\" -o \\"./translate/index.pot\\"',
-    po:
-      'rip po2json \\"./translate/po/*.po\\" -m \\"./.trood-core/translate/messages/**/*.json\\" -o \\"./.trood-core/public/locale-data\\"',
+    pot: 'rip json2pot \\"./.trood-core/translate/messages/**/*.json\\" -c \\"id\\" -o \\"./translate/index.pot\\"',
   };
 
   // Setup the eslint config

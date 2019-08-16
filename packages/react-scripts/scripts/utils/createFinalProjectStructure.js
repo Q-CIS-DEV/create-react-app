@@ -10,7 +10,6 @@ const copyAndMerge = require('./copyAndMerge');
 
 const cssFileRegexp = /\.css$/;
 
-// const libraries = ['businessObjects', 'componentLibraries'];
 const dependeciesOptions = [
   'dependencies',
   'devDependencies',
@@ -18,12 +17,16 @@ const dependeciesOptions = [
   'peerDependencies',
 ];
 
-configFilesToCopy = [
-  // 'src/config.js',
+const configFilesToCopy = [
   '.env',
   'package-lock.json',
   'yarn.lock',
   'public',
+];
+
+const configFoldersToCopy = [
+  'src',
+  'translate',
 ];
 
 module.exports = () => {
@@ -43,7 +46,7 @@ module.exports = () => {
           }
         });
 
-        ['src', 'translate'].forEach(path => {
+        configFoldersToCopy.forEach(path => {
           const fromPath = `${path}/`;
           const toPath = `${paths.finalProjectDir}/${fromPath}`;
           fs.copySync(fromPath, toPath, {
@@ -58,24 +61,6 @@ module.exports = () => {
             },
           });
         })
-
-        // Copy libraries
-        /*
-        libraries.forEach(library => {
-          const dirFromPath = `src/${library}`
-          const dirToPath = `${paths.finalProjectDir}/src/${library}`
-          const files = fs.readdirSync(dirFromPath)
-
-          files.forEach(file => {
-            const fileFromPath = path.join(dirFromPath, file)
-            const fileToPath = path.join(dirToPath, file)
-            const stats = fs.statSync(fileFromPath);
-            if (stats.isDirectory()) {
-              fs.copySync(fileFromPath, fileToPath);
-            }
-          });
-        });
-        */
 
         // Prepare package.json
         const appPackage = require(path.join(paths.appPath, 'package.json'));

@@ -5,11 +5,18 @@ const union = require('lodash/union');
 const cssFileRegexp = /\.css$/;
 const importLineRegexp = /@import .*$/gm;
 
+const foldersToIgnoreMergeCssRegexp = [
+  /^src[\/\\]businessObjects.*\.css$/,
+  /^src[\/\\]componentLibraries.*\.css$/,
+  /^src[\/\\]layouts[\/\\]TroodCoreDefaultLayout.*\.css$/,
+];
+
 module.exports = (fromPath, toPath) => {
   if (
     cssFileRegexp.test(fromPath) &&
     cssFileRegexp.test(toPath) &&
-    fs.existsSync(toPath)
+    fs.existsSync(toPath) &&
+    !foldersToIgnoreMergeCssRegexp.some(f => f.test(fromPath))
   ) {
     const originalPath = toPath.replace(cssFileRegexp, '.original.css');
     if (!fs.existsSync(originalPath)) {
