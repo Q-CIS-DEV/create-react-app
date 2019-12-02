@@ -1,6 +1,6 @@
 {
   "name": "trood-core-react-scripts",
-  "version": "1.0.0-alpha",
+  "version": "1.0.1-alpha",
   "description": "Configuration and scripts for Create Trood Core App.",
   "repository": "Q-CIS-DEV/create-react-app",
   "license": "MIT",
@@ -21,6 +21,8 @@
     "babel-jest": "23.6.0",
     "chalk": "2.4.1",
     "chokidar": "^2.0.4",
+    "dotenv": "6.0.0",
+    "dotenv-expand": "4.2.0",
     "fs-extra": "7.0.0",
     "git-clone": "^0.1.0",
     "git-clone-repo": "^1.0.0",
