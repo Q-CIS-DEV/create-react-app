@@ -8,7 +8,7 @@ const importLineRegexp = /@import .*$/gm;
 const foldersToIgnoreMergeCssRegexp = [
   /^src[\/\\]businessObjects.*\.css$/,
   /^src[\/\\]componentLibraries.*\.css$/,
-  /^src[\/\\]layouts[\/\\]TroodCoreDefaultLayout.*\.css$/,
+  /^src[\/\\]layouts.*\.css$/,
 ];
 
 module.exports = (fromPath, toPath) => {

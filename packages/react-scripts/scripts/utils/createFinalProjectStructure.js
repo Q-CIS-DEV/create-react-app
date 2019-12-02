@@ -90,6 +90,8 @@ module.exports = () => {
           JSON.stringify(finalPackage, null, 2) + os.EOL
         );
 
+        fs.removeSync(path.join(paths.finalProjectDir, '.git'))
+        
         resolve();
       }
     );
