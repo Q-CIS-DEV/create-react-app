@@ -1,12 +1,53 @@
 {
   "presets": [
-    "es2015",
-    "react",
-    "stage-1"
+    [
+      "@babel/preset-env",
+      {
+        "useBuiltIns": "entry",
+        "corejs": 3,
+        "modules": false,
+        "exclude": ["transform-typeof-symbol"]
+      }
+    ],
+    "@babel/preset-react"
   ],
   "plugins": [
-    ["react-intl", {
-      "messagesDir": "./translate/messages/"
-    }]
+    [
+      "react-intl",
+      {
+        "messagesDir": "./translate/messages/"
+      }
+    ],
+    [
+      "@babel/plugin-transform-destructuring",
+      {
+        "loose": false,
+        "selectiveLoose": [
+          "useState",
+          "useEffect",
+          "useContext",
+          "useReducer",
+          "useCallback",
+          "useMemo",
+          "useRef",
+          "useImperativeHandle",
+          "useLayoutEffect",
+          "useDebugValue"
+        ]
+      }
+    ],
+    [
+      "@babel/plugin-transform-runtime",
+      {
+        "corejs": false,
+        "helpers": false,
+        "regenerator": true,
+        "useESModules": true
+      }
+    ],
+    "@babel/plugin-syntax-dynamic-import",
+    "@babel/plugin-proposal-export-default-from",
+    "@babel/plugin-proposal-export-namespace-from",
+    ["@babel/plugin-proposal-class-properties", { "loose": false }]
   ]
 }

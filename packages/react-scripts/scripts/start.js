@@ -21,48 +21,21 @@ process.on('unhandledRejection', err => {
 
 // Ensure environment variables are read.
 require('../config/env');
-// @remove-on-eject-begin
-// Do the preflight check (only happens before eject).
-const verifyPackageTree = require('./utils/verifyPackageTree');
-if (process.env.SKIP_PREFLIGHT_CHECK !== 'true') {
-  verifyPackageTree();
-}
-const verifyTypeScriptSetup = require('./utils/verifyTypeScriptSetup');
-verifyTypeScriptSetup();
-// @remove-on-eject-end
 
 const fs = require('fs-extra');
 const path = require('path');
 const chalk = require('chalk');
-const webpack = require('webpack');
-const WebpackDevServer = require('webpack-dev-server');
-const clearConsole = require('react-dev-utils/clearConsole');
 const checkRequiredFiles = require('react-dev-utils/checkRequiredFiles');
-const {
-  choosePort,
-  createCompiler,
-  prepareProxy,
-  prepareUrls,
-} = require('react-dev-utils/WebpackDevServerUtils');
-const openBrowser = require('react-dev-utils/openBrowser');
 const paths = require('../config/paths');
-const configFactory = require('../config/webpack.config');
-const createDevServerConfig = require('../config/webpackDevServer.config');
 const chokidar = require('chokidar');
-const debounce = require('lodash/debounce');
 const { execSync, spawn } = require('child_process');
 
-const useYarn = fs.existsSync(paths.yarnLockFile);
 const isInteractive = process.stdout.isTTY;
 
 // Warn and crash if required files are missing
 if (!checkRequiredFiles([paths.appHtml])) {
   process.exit(1);
 }
-
-// Tools like Cloud9 rely on this.
-const DEFAULT_PORT = parseInt(process.env.PORT, 10) || 3000;
-const HOST = process.env.HOST || '0.0.0.0';
 
 if (process.env.HOST) {
   console.log(
@@ -104,13 +77,10 @@ const refreshFiles = (event, filePath) => {
 const createFinalProjectStructure = require('./utils/createFinalProjectStructure');
 checkBrowsers(paths.appPath, isInteractive)
   .then(async () => {
-    // // We attempt to use the default port but if it is busy, we offer the user to
-    // // run on a different port. `choosePort()` Promise resolves to the next free port.
-    // return choosePort(HOST, DEFAULT_PORT);
     await createFinalProjectStructure();
     const cdCommand = `cd ${paths.finalProjectDir}/`;
     if (!process.argv.includes('ignore-npm')) {
-      execSync(`${cdCommand} && npm install`, { stdio: 'inherit' });
+      execSync(`${cdCommand} && npm install --only=prod`, { stdio: 'inherit' });
     }
 
     // Start watcher, so we can copy src files to dev env
