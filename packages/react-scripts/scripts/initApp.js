@@ -22,7 +22,7 @@ const os = require('os');
 
 
 const troodCoreScriptsPath = path.join(__dirname, '..')
-const appPath = path.join(__dirname, '../../..')
+const appPath = process.cwd()
 
 const initPackage = function() {
   console.log('init package.json...')
@@ -41,16 +41,16 @@ const initPackage = function() {
     'eslint-plugin-react-hooks': '^2.3.0',
     'pre-commit': '^1.2.2',
     'stylelint': '^12.0.0',
-    'stylelint-config-standard': '^19.0.0'
+    'stylelint-config-standard': '^19.0.0',
+    "trood-core-react-scripts": "1.0.0"
   }
 
   appPackage.scripts = {
     'lint': 'npm run jslint && npm run stylelint',
     'jslint': 'eslint src/ --ext .js',
     'stylelint': 'stylelint "src/**/*.css"',
-    'start': 'react-scripts start',
-    'build': 'react-scripts build',
-    'test': 'react-scripts test',
+    'start': 'trood-core-react-scripts start',
+    'build': 'trood-core-react-scripts build',
     'pot': 'rip json2pot "./.trood-core/translate/messages/**/*.json" -c "id" -o "./translate/index.pot"'
   }
 
@@ -91,7 +91,7 @@ const initDir = function() {
 
 const installPkg = function () {
   console.log('npm install')
-  execSync('npm install --only=prod')
+  execSync('npm i', { cwd: appPath })
 }
 
 initPackage()
