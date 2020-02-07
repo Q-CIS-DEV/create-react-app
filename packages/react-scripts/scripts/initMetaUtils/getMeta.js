@@ -1,5 +1,5 @@
 
-const fetch = require("cross-fetch");
+const fetch = require("node-fetch");
 const {ask} = require("./common")
 
 const formatEndpoint = (endpoint)=>endpoint.endsWith('/') ? endpoint.slice(0, -1) : endpoint;
