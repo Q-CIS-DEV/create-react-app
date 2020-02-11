@@ -68,7 +68,7 @@ function writeModelFile({ businessObject, boPath }) {
       '    confirm: true,\n' +
       '    message: messages.deletionQuestion,\n' +
       '  },\n' +
-      '}';
+      '}'
     return modelFile;
   }
 

@@ -25,9 +25,9 @@ function writeIndexFile({ businessObject, boPath }) {
     "export default {" + exportObject + "}"
   );
   if (!/import model /.test(indexFile))
-    indexFile = "import model from './model';\n" + indexFile;
+    indexFile = "import model from './model'\n" + indexFile;
   if (!/import form /.test(indexFile))
-    indexFile = "import form from './form';\n" + indexFile;
+    indexFile = "import form from './form'\n" + indexFile;
 
   fs.writeFileSync(filePath, indexFile, "utf-8");
   console.log(`Generating ${objectName}/index.js`);

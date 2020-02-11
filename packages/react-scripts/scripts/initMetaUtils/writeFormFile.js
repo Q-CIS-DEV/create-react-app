@@ -24,7 +24,7 @@ function writeFormFile({ businessObject, boPath }) {
       businessObject.fields.map(field => createFieldRow(field)).join("\n") +
       "\n  },\n" +
       "  mapServerDataToIds: true,\n" +
-      "};";
+      "}";
     return formFile;
   }
 
