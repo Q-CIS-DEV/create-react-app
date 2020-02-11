@@ -30,8 +30,8 @@ function toCamel(string, separator = "") {
   return string.replace(/([-_]{1,2}[a-z])/gi, $1 => {
     return $1
       .toUpperCase()
-      .replace("-", separator)
-      .replace("_", separator);
+      .replace(/-/g, separator)
+      .replace(/_/g, separator);
   });
 }
 

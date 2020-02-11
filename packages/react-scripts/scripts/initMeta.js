@@ -6,7 +6,7 @@ const writeFormFile = require("./initMetaUtils/writeFormFile.js");
 const writeIndexFile = require("./initMetaUtils/writeIndexFile.js");
 const writeConfigFile = require("./initMetaUtils/writeConfigFile.js");
 const writeBoConfigFile = require("./initMetaUtils/writeBoConfigFile.js");
-const writeEntityNameMessages = require("./initMetaUtils/writeEntityNameMessages.js");
+
 
 // TODO add normal parsing for host
 const url =
@@ -24,7 +24,6 @@ async function initMeta() {
   makeBoFolder(boCollectionPath);
   writeConfigFile({ meta, appPath, boCollectionName });
   writeBoConfigFile({ meta, boCollectionPath, boCollectionName });
-  writeEntityNameMessages({ meta, appPath });
   meta.forEach(businessObject => {
     const objectName = toCamel(businessObject.name);
     const boPath = boCollectionPath + "/" + objectName;

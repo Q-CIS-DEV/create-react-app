@@ -8,7 +8,7 @@ function writeFormFile({ businessObject, boPath }) {
 
   function createFieldRow(field) {
     let row = "    " + toCamel(field.name) + ": ";
-    if (field.linkType === "outer") {
+    if (field.linkType === "outer" ||  field.type === 'objects') {
       row += "[]";
     } else {
       row += "undefined";
