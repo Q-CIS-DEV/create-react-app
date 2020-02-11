@@ -4,8 +4,7 @@ export default {
     {
       name: 'TroodCoreBusinessObjects',
       type: 'CUSTODIAN',
-      models: {
-      },
+      models: {},
     },
   ],
   libraries: [
@@ -14,12 +13,17 @@ export default {
     },
   ],
   services: {
-    auth: {
-      linkedObject: 'handyman',
+    auth: {},
+    locale: {
+      availableLocales: [
+        {
+          code: 'en',
+          name: 'Eng',
+        },
+      ],
+      defaultLocale: 'en',
     },
   },
-  pages: [
-
-  ],
+  pages: [],
   entityPages: {},
 }
