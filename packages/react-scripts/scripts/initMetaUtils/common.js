@@ -25,20 +25,10 @@ const ask = (question, muted = false) =>
     mutableStdout.muted = muted;
   });
 
-function toCamel(string, separator = "") {
-  if (string === string.toUpperCase()) return string;
-  return string.replace(/([-_]{1,2}[a-z])/gi, $1 => {
-    return $1
-      .toUpperCase()
-      .replace(/-/g, separator)
-      .replace(/_/g, separator);
-  });
+function toCamel(string) {
+  return string.replace(/(.)_+(.)/gi, (_, $1, $2) => $1 + $2.toUpperCase())
 }
 
-function toName(string){
-  const name = toCamel(string, ' ');
-  return name.slice(0, 1).toUpperCase() + name.slice(1);
-}
 
 function makeBoFolder(path) {
     fs.mkdirSync(path, { recursive: true }, err => {
@@ -46,4 +36,4 @@ function makeBoFolder(path) {
     });
   }
 
-module.exports = { ask, toCamel, makeBoFolder, toName };
+module.exports = { ask, toCamel, makeBoFolder };

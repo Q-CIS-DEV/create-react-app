@@ -51,7 +51,7 @@ function writeModelFile({ businessObject, boPath }) {
     const restifyImportsKey = Object.keys(restifyImports);
     const resifyImportRow =
       restifyImportsKey.length > 0
-        ? `import { ${restifyImportsKey.join(', ')} }  from 'redux-restify';`
+        ? `import { ${restifyImportsKey.join(', ')} }  from 'redux-restify'`
         : '';
     const modelFile =
       resifyImportRow +
@@ -68,7 +68,7 @@ function writeModelFile({ businessObject, boPath }) {
       '    confirm: true,\n' +
       '    message: messages.deletionQuestion,\n' +
       '  },\n' +
-      '};';
+      '}';
     return modelFile;
   }
 
