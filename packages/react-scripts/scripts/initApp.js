@@ -51,7 +51,8 @@ const initPackage = function() {
     'stylelint': 'stylelint "src/**/*.css"',
     'start': 'trood-core-react-scripts start',
     'build': 'trood-core-react-scripts build',
-    'pot': 'rip json2pot "./.trood-core/translate/messages/**/*.json" -c "id" -o "./translate/index.pot"'
+    'pot': 'rip json2pot "./.trood-core/translate/messages/**/*.json" -c "id" -o "./translate/index.pot"',
+    'initMeta': 'trood-core-react-scripts initMeta',
   }
 
   appPackage['pre-commit'] = ['lint']

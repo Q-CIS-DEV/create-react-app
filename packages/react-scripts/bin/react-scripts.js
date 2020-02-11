@@ -24,6 +24,7 @@ const scripts = [
   'start',
   'updateCore', // TODO
   'test', // TODO
+  'initMeta',
 ]
 
 const scriptIndex = args.findIndex(x => scripts.includes(x));
