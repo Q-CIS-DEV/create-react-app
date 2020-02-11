@@ -12,16 +12,24 @@ function writeModelFile({ businessObject, boPath }) {
       row += ' new ';
       if (field.type === 'objects' || field.linkType === 'outer')
         row += 'RestifyForeignKeysArray(';
-      if (field.linkType === 'inner' && field.type !== 'generic' && field.type !== 'objects')
+      if (
+        field.linkType === 'inner' &&
+        field.type !== 'generic' &&
+        field.type !== 'objects'
+      )
         row += 'RestifyForeignKey(';
       if (field.linkType === 'inner' && field.type === 'generic')
         row += 'RestifyGenericForeignKey(';
       if (field.linkMeta) row += "'" + toCamel(field.linkMeta) + "'";
       if (field.linkMetaList)
         row +=
-          '[' +
-          field.linkMetaList.map(item => "'" + toCamel(item) + "'").join(', ') +
-          ']';
+          '[\n' +
+          [
+            ...new Set(
+              field.linkMetaList.map(item => "'" + toCamel(item) + "'")
+            ),
+          ].join(',\n') +
+          ',\n]';
       if (field.type === 'objects' || field.linkType === 'outer')
         row += ', { allowNested: false }';
       row += ')';
@@ -38,37 +46,36 @@ function writeModelFile({ businessObject, boPath }) {
       if (field.type === 'objects' || field.linkType === 'outer')
         return { ...memo, ['RestifyForeignKeysArray']: true };
       if (
-        field.linkType === 'inner' && field.type !== 'generic' && field.type !== 'objects'
+        field.linkType === 'inner' &&
+        field.type !== 'generic' &&
+        field.type !== 'objects'
       )
         return { ...memo, ['RestifyForeignKey']: true };
-      
-      if (
-        field.linkType === 'inner' && field.type === 'generic'
-      )
+
+      if (field.linkType === 'inner' && field.type === 'generic')
         return { ...memo, ['RestifyGenericForeignKey']: true };
       return memo;
     }, {});
     const restifyImportsKey = Object.keys(restifyImports);
     const resifyImportRow =
       restifyImportsKey.length > 0
-        ? `import { ${restifyImportsKey.join(', ')} }  from 'redux-restify'`
+        ? `import { ${restifyImportsKey.join(', ')} } from 'redux-restify'\n`
         : '';
     const modelFile =
       resifyImportRow +
-      '\n' +
       "import { messages } from '$trood/mainConstants'\n" +
       'export default {\n' +
       '  defaults: {\n' +
       businessObject.fields.map(field => createFieldRow(field)).join('\n') +
       '\n  },\n' +
-      '  name: "' +
+      "  name: '" +
       objectName +
-      '",\n' +
+      "',\n" +
       '  deletion: {\n' +
       '    confirm: true,\n' +
       '    message: messages.deletionQuestion,\n' +
       '  },\n' +
-      '}'
+      '}';
     return modelFile;
   }
 
