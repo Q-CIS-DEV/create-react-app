@@ -37,7 +37,7 @@ function makeBoFolder(path) {
 }
 
 function addTrailingComma(string) {
-  return string.replace(/(\w|}|')(\r\n|\r|\n)/gi, (_, $1, $2) => $1 + ',' + $2);
+  return string.replace(/(\w|}|'|])(\r\n|\r|\n)/gi, (_, $1, $2) => $1 + ',' + $2);
 }
 
 function parseObject(obj) {
