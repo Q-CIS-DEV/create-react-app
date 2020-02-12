@@ -31,7 +31,7 @@ function writeModelFile({ businessObject, boPath }) {
           ].join(',\n') +
           ',\n    ]';
       if (field.type === 'objects' || field.linkType === 'outer')
-        row += ', { allowNested: false, }';
+        row += ', { allowNested: false }';
       row += ')';
     } else {
       row += ' undefined';
