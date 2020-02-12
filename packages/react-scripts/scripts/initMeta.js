@@ -12,7 +12,7 @@ const url = (process.env.REACT_APP_DEFAULT_API_HOST || '').replace(
   '/custodian/data/',
   ''
 );
-const defaultBoCollectionName = 'TestCoreBusinessObjects';
+const defaultBoCollectionName = 'TroodCoreBusinessObjects';
 const appPath = process.cwd();
 
 async function initMeta() {

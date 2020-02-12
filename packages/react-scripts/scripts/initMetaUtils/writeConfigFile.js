@@ -1,6 +1,6 @@
 const fs = require("fs");
-const util = require("util");
-const { toCamel } = require("./common");
+const { toCamel, parseObject } = require("./common");
+
 
 function writeConfigFile({ meta, appPath, boCollectionName }) {
   const configPath = appPath + "/src/config.js";
@@ -29,13 +29,10 @@ function writeConfigFile({ meta, appPath, boCollectionName }) {
       boCollection.models[objectName] = { endpoint: businessObject.name };
     }
   });
-
+  
   fs.writeFileSync(
     configPath,
-    `export default ${util.inspect(appConfig, {
-      depth: null,
-      breakLength: 1
-    })}`,
+    `export default ${parseObject(appConfig)}`,
     "utf-8"
   );
   console.log(`Generating src/config.js`);

@@ -26,12 +26,12 @@ function writeModelFile({ businessObject, boPath }) {
           '[\n' +
           [
             ...new Set(
-              field.linkMetaList.map(item => "'" + toCamel(item) + "'")
+              field.linkMetaList.map(item => "      '" + toCamel(item) + "'")
             ),
           ].join(',\n') +
-          ',\n]';
+          ',\n    ]';
       if (field.type === 'objects' || field.linkType === 'outer')
-        row += ', { allowNested: false }';
+        row += ', { allowNested: false, }';
       row += ')';
     } else {
       row += ' undefined';

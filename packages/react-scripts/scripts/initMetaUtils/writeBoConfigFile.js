@@ -1,6 +1,5 @@
 const fs = require('fs');
-const util = require('util');
-const { toCamel } = require('./common');
+const { toCamel, parseObject } = require('./common');
 
 function writeBoConfigFile({ meta, boCollectionPath, boCollectionName }) {
   const configPath = boCollectionPath + '/config.js';
@@ -33,7 +32,7 @@ function writeBoConfigFile({ meta, boCollectionPath, boCollectionName }) {
   });
   fs.writeFileSync(
     configPath,
-    `export default ${util.inspect(boConfig, { depth: null, breakLength: 1 })}`,
+    `export default ${parseObject(boConfig)}`,
     'utf-8'
   );
 }
