@@ -70,7 +70,7 @@ function writeModelFile({ businessObject, boPath }) {
       '\n  },\n' +
       "  name: '" +
       objectName +
-      "',\n" +
+      '\',\n' +
       '  deletion: {\n' +
       '    confirm: true,\n' +
       '    message: messages.deletionQuestion,\n' +
