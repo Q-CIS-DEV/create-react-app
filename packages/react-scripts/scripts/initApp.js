@@ -42,7 +42,7 @@ const initPackage = function() {
     'pre-commit': '^1.2.2',
     'stylelint': '^12.0.0',
     'stylelint-config-standard': '^19.0.0',
-    "trood-core-react-scripts": "1.1.3"
+    "trood-core-react-scripts": "1.1.4"
   }
 
   appPackage.scripts = {
