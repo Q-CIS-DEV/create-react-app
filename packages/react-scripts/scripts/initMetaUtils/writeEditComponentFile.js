@@ -53,8 +53,9 @@ function writeEditComponentFile({ businessObject, boPath }) {
     }
 
     // if (['generic', 'array', 'object', 'objects'].includes(field.type)) {
-      if (['object'].includes(field.type)) {
-      const linkName = toCamel(field.linkMeta);
+      if (['generic', 'object'].includes(field.type)) {
+      
+      const linkName = field.linkMeta ? toCamel(field.linkMeta) : '';
       const props = [linkName +'Entities', linkName + 'ApiActions']
       const code = `      const [${linkName}Search, ${linkName}SearchSet] = React.useState('')
       const ${linkName}ApiConfig = {
@@ -77,35 +78,8 @@ function writeEditComponentFile({ businessObject, boPath }) {
 import { getNestedObjectField } from '$trood/helpers/nestedObjects'`
 
       let jsx = '';
-
-      if (field.type === 'generic') {
-        jsx = `      <div>
-            <TSelect {...{
-              label: '${name}_type',
-              items: fieldMeta.linkMetaList.map(value => ({ value })),
-              type: SELECT_TYPES.filterDropdown,
-              clearable: true,
-              values: model.${name} && model.${name}._object ? [model.${name}._object] : [],
-              placeHolder: 'Not set',
-              onChange: values => modelFormActions.changeField('${name}', values[0]),
-              onInvalid: errs => modelFormActions.setFieldError('${name}', errs),
-              validate: {
-                checkOnBlur: true,
-                required: ${!field.optional},
-              },
-            }} />
-            <TSelect {...{
-              ...getSelectProps(
-                model[fieldMeta.name] ? getBusinessObjectRestifyModelName(model[fieldMeta.name]._object) : undefined,
-                false,
-                true,
-              ),
-            }} />
-          </div>
-        `
-      }
       
-      if (fieldMeta.type === 'object') {
+      if (field.type === 'object' || (field.type === 'generic' && !field.linkMetaList)) {
         jsx = `      <TSelect
         {...{
           label: '${name}',
@@ -128,6 +102,7 @@ import { getNestedObjectField } from '$trood/helpers/nestedObjects'`
           isLoading: ${linkName}ArrayIsLoading,
         }}
       />`
+      }
       return {imports, code, jsx, props};
     }
 
