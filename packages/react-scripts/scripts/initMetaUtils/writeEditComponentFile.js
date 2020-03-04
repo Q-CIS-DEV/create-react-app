@@ -25,8 +25,7 @@ function writeEditComponentFile({ businessObject, boPath }) {
       return {
         imports: "import TCheckbox from '$trood/components/TCheckbox'",
         jsx: `      <TCheckbox
-            {...{
-            className: modalsStyle.control,
+          {...{
             ${getDefaultProps(field)}
             validate: {
               checkOnBlur: true,
@@ -43,12 +42,12 @@ function writeEditComponentFile({ businessObject, boPath }) {
           "import DateTimePicker, { PICKER_TYPES } from '$trood/components/DateTimePicker'",
         jsx: `      <DateTimePicker
             {...{
-            ${getDefaultProps(field)}
-            type: PICKER_TYPES.${field.type === 'datetime' ? 'dateTime': field.type},
-            validate: {
-              checkOnBlur: true,
-${field.type === 'time' ? '' :  `              requiredDate: ${!field.optional},`}
-${field.type === 'date' ? '' :  `              requiredTime: ${!field.optional},`}
+              ${getDefaultProps(field)}
+              type: PICKER_TYPES.${field.type === 'datetime' ? 'dateTime': field.type},
+              validate: {
+                checkOnBlur: true,
+  ${field.type === 'time' ? '' :  `              requiredDate: ${!field.optional},`}
+  ${field.type === 'date' ? '' :  `              requiredTime: ${!field.optional},`}
             },
           }}
         />`,
@@ -57,39 +56,41 @@ ${field.type === 'date' ? '' :  `              requiredTime: ${!field.optional},
 
    
     if (['generic', 'array', 'object', 'objects'].includes(field.type)) {
-      const linkName = field.linkMeta ? toCamel(field.linkMeta) : '';
-      const props = [linkName + 'Entities', linkName + 'ApiActions'];
+      const linkName = field.linkMeta ? toCamel(field.linkMeta) : name;
+      const props = [linkName + 'Entities', linkName + 'ApiActions', ...(field.type === 'generic' ? ['...restProps'] : [])];
       const imports = `import TSelect, { SELECT_TYPES } from '$trood/components/TSelect'
 import { RESTIFY_CONFIG } from 'redux-restify'`;
 
       const getSelectProps = (multi, generic) => {
-        let forEntityProps = '';
-        const code = `      const [${linkName}Search, ${linkName}SearchSet] = React.useState('')
-      const ${linkName}ModelConfig = RESTIFY_CONFIG.registeredModels[${
-          generic ? `model.${linkName}._object` : `'${linkName}'`
-        }]
-      const ${linkName}ApiConfig = {
-        filter: {
-          q: ${linkName}Search ? \`eq(\${${linkName}ModelConfig.idField},\${${linkName}Search})\` : '',
-          depth: 1,
-        },
-      }
-      const ${linkName}Array = ${linkName}Entities.getArray(${linkName}ApiConfig)
-      const ${linkName}ArrayIsLoading = ${linkName}Entities.getIsLoadingArray(${linkName}ApiConfig)
-      const ${linkName}NextPage = ${linkName}Entities.getNextPage(${linkName}ApiConfig)
-      const ${linkName}NextPageAction = () => {
-        if (${linkName}NextPage) {
-          ${linkName}ApiActions.loadNextPage(${linkName}ApiConfig)
-        }
-      }
+        const targetFieldName = `snakeToCamel(model.${name}._object)`
+        const entities = generic ? `restProps[${targetFieldName} + 'Entities']` : `${linkName}Entities`
+        const apiActions = generic ? `restProps[${targetFieldName} + 'ApiActions']` : `${linkName}ApiActions`
+
+
+        const code = `  const [${linkName}Search, ${linkName}SearchSet] = React.useState('')
+  const ${linkName}ModelConfig = RESTIFY_CONFIG.registeredModels${
+      generic ? `[${targetFieldName}]` : `.${linkName}`
+    }
+  const ${linkName}ApiConfig = {
+    filter: {
+      q: ${linkName}Search ? \`eq(\${${linkName}ModelConfig.idField},\${${linkName}Search})\` : '',
+      depth: 1,
+    },
+  }
+  const ${linkName}Array = ${entities}.getArray(${linkName}ApiConfig)
+  const ${linkName}ArrayIsLoading = ${entities}.getIsLoadingArray(${linkName}ApiConfig)
+  const ${linkName}NextPage = ${entities}.getNextPage(${linkName}ApiConfig)
+  const ${linkName}NextPageAction = () => {
+    if (${linkName}NextPage) {
+      ${apiActions}.loadNextPage(${linkName}ApiConfig)
+    }
+  }
       `;
         const fieldValue = generic
           ? `model.${name}[${linkName}ModelConfig.idField] `
           : `model.${name}`;
 
-        forEntityProps = `
-        className: modalsStyle.control,
-        items: ${linkName}Array.map(item => ({ value: item[${linkName}ModelConfig.idField], label: item.name || item[${linkName}ModelConfig.idField] })),
+        const componentProps = `items: ${linkName}Array.map(item => ({ value: item[${linkName}ModelConfig.idField], label: item.name || item[${linkName}ModelConfig.idField] })),
         values: ${multi ? fieldValue : `${fieldValue} ? [${fieldValue}] : []`},
         onChange: vals => modelFormActions.changeField(${
           generic ? `['${name}', ${linkName}ModelConfig.idField]` : `'${name}'`
@@ -100,21 +101,19 @@ import { RESTIFY_CONFIG } from 'redux-restify'`;
         emptyItemsLabel: ${linkName}ArrayIsLoading ? '' : undefined,
         onScrollToEnd: ${linkName}NextPageAction,
         isLoading: ${linkName}ArrayIsLoading,
-        missingValueResolver: value => ${linkName}Entities.getById(value).name,`;
-
+        missingValueResolver: value => ${entities}.getById(value)[${generic ? `${linkName}ModelConfig.idField`:`'${name}'`}],
+        label: '${name}',
+        errors: modelErrors.${name},
+        onValid: () => modelFormActions.resetFieldError('${name}'),
+        onInvalid: err => modelFormActions.setFieldError('${name}', err),
+        type: SELECT_TYPES.filterDropdown,
+        multi: ${multi},
+        clearable: ${!field.optional},
+        placeHolder: 'Not set',
+          `
         return {
           code,
-          componentProps: `
-          ${forEntityProps}
-          label: '${name}',
-          errors: modelErrors.${name},
-          onValid: () => modelFormActions.resetFieldError('${name}'),
-          onInvalid: err => modelFormActions.setFieldError('${name}', err),
-          type: SELECT_TYPES.filterDropdown,
-          multi: ${multi},
-          clearable: ${!field.optional},
-          placeHolder: 'Not set',
-          `,
+          componentProps,
         };
       };
 
@@ -124,10 +123,25 @@ import { RESTIFY_CONFIG } from 'redux-restify'`;
           props,
           imports,
           code: componentConfig.code,
-          jsx: `<div>
+          jsx: `<div className={modalsStyle.control}>
+          <TSelect {...{
+            className: undefined,
+            label: '${name}_type',
+            items: [${field.linkMetaList.map(value => `{ value: '${value}' }`).join(', ')}],
+            type: SELECT_TYPES.filterDropdown,
+            clearable: true,
+            values: model.${name} && model.${name}._object ? [model.${name}._object] : [],
+            placeHolder: 'Not set',
+            onChange: vals => modelFormActions.changeField('${name}', { _object: vals[0] }),
+            onInvalid: err => modelFormActions.setFieldError('${name}', err),
+            validate: {
+              checkOnBlur: true,
+              required: ${!field.optional},
+            },
+          }} />
           <TSelect
             {...{
-              ${componentConfig.componentProps}
+        ${componentConfig.componentProps}
             }}
           />
         </div>`,
@@ -140,9 +154,10 @@ import { RESTIFY_CONFIG } from 'redux-restify'`;
         props,
         imports,
         code: componentConfig.code,
-        jsx: `<TSelect
+        jsx: `      <TSelect
         {...{
-          ${componentConfig.componentProps}
+        className: modalsStyle.control,
+        ${componentConfig.componentProps}
         }}
       />`,
       };
@@ -193,11 +208,13 @@ import { RESTIFY_CONFIG } from 'redux-restify'`;
 import style from './editComponent.css'
 import modalsStyle from '$trood/styles/modals.css'
 import classNames from 'classnames'
-
 ${[...new Set(components.imports)].join('\n')}
+${businessObject.fields
+  .some(field => field.type==='generic' && field.linkType !== 'outer') ? 
+  "import { snakeToCamel } from '$trood/helpers/namingNotation'" : ''}
 
 const EditComponent = ({
-  ${[...new Set(components.props)].join(',\n  ')}, 
+  ${[...new Set(components.props)].sort((a)=>a==='...restProps'?1:-1).join(',\n  ')}${components.props.includes('...restProps') ? '' : ','} 
 }) => {
 ${[...new Set(components.code)].join('\n')}
   return (

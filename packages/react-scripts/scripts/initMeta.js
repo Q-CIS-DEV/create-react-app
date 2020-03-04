@@ -33,7 +33,7 @@ async function initMeta() {
     writeEditComponentFile({ businessObject, boPath })
     // writeModelFile({ businessObject, boPath });
     // writeFormFile({ businessObject, boPath });
-    // writeIndexFile({ businessObject, boPath });
+    writeIndexFile({ businessObject, boPath });
   });
 }
 
