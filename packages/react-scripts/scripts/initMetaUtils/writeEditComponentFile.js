@@ -4,7 +4,7 @@ const { toCamel } = require('./common');
 const getDefaultProps = field => {
   const name = toCamel(field.name);
   return `label: '${name}',
-          placeholder: 'Not chosen',
+          className: modalsStyle.control,
           value: model.${name},
           errors: modelErrors.${name},
           onChange: val => modelFormActions.changeField('${name}', val),
@@ -14,8 +14,9 @@ const getDefaultProps = field => {
 
 function writeEditComponentFile({ businessObject, boPath }) {
   const objectName = toCamel(businessObject.name);
-  const filePath = boPath + '/editComponent.js';
-  // if (fs.existsSync(filePath)) return;
+  const componentPath = boPath + '/editComponent.js';
+  const cssPath = boPath + '/editComponent.css';
+  // if (fs.existsSync(componentPath)) return;
 
   const getComponent = field => {
     const name = toCamel(field.name);
@@ -25,6 +26,7 @@ function writeEditComponentFile({ businessObject, boPath }) {
         imports: "import TCheckbox from '$trood/components/TCheckbox'",
         jsx: `      <TCheckbox
             {...{
+            className: modalsStyle.control,
             ${getDefaultProps(field)}
             validate: {
               checkOnBlur: true,
@@ -35,17 +37,18 @@ function writeEditComponentFile({ businessObject, boPath }) {
       };
     }
 
-    if (field.type === 'datetime') {
+    if (['date', 'time', 'datetime'].includes(field.type)) {
       return {
         imports:
-          "import DateTimePicker from '$trood/components/DateTimePicker'",
+          "import DateTimePicker, { PICKER_TYPES } from '$trood/components/DateTimePicker'",
         jsx: `      <DateTimePicker
             {...{
             ${getDefaultProps(field)}
+            type: PICKER_TYPES.${field.type === 'datetime' ? 'dateTime': field.type},
             validate: {
               checkOnBlur: true,
-              requiredDate: ${!field.optional},
-              requiredTime: ${!field.optional},
+${field.type === 'time' ? '' :  `              requiredDate: ${!field.optional},`}
+${field.type === 'date' ? '' :  `              requiredTime: ${!field.optional},`}
             },
           }}
         />`,
@@ -57,7 +60,6 @@ function writeEditComponentFile({ businessObject, boPath }) {
       const linkName = field.linkMeta ? toCamel(field.linkMeta) : '';
       const props = [linkName + 'Entities', linkName + 'ApiActions'];
       const imports = `import TSelect, { SELECT_TYPES } from '$trood/components/TSelect'
-import { getNestedObjectField } from '$trood/helpers/nestedObjects'
 import { RESTIFY_CONFIG } from 'redux-restify'`;
 
       const getSelectProps = (multi, generic) => {
@@ -69,7 +71,6 @@ import { RESTIFY_CONFIG } from 'redux-restify'`;
       const ${linkName}ApiConfig = {
         filter: {
           q: ${linkName}Search ? \`eq(\${${linkName}ModelConfig.idField},\${${linkName}Search})\` : '',
-          only: ${linkName}ModelConfig.idField,
           depth: 1,
         },
       }
@@ -87,7 +88,8 @@ import { RESTIFY_CONFIG } from 'redux-restify'`;
           : `model.${name}`;
 
         forEntityProps = `
-        items: ${linkName}Array.map(item => ({ value: item[${linkName}ModelConfig.idField] })),
+        className: modalsStyle.control,
+        items: ${linkName}Array.map(item => ({ value: item[${linkName}ModelConfig.idField], label: item.name || item[${linkName}ModelConfig.idField] })),
         values: ${multi ? fieldValue : `${fieldValue} ? [${fieldValue}] : []`},
         onChange: vals => modelFormActions.changeField(${
           generic ? `['${name}', ${linkName}ModelConfig.idField]` : `'${name}'`
@@ -165,7 +167,7 @@ import { RESTIFY_CONFIG } from 'redux-restify'`;
 
   const generateEditComponent = businessObject => {
     const components = businessObject.fields
-      .filter(field => !['id', 'created'].includes(field.name) && field.linkType === 'outer')
+      .filter(field => !(field.name==='id' && field.optional===true) && field.linkType !== 'outer')
       .reduce(
         (memo, field) => {
           const component = getComponent(field);
@@ -188,6 +190,10 @@ import { RESTIFY_CONFIG } from 'redux-restify'`;
       );
 
     return `import React from 'react'
+import style from './editComponent.css'
+import modalsStyle from '$trood/styles/modals.css'
+import classNames from 'classnames'
+
 ${[...new Set(components.imports)].join('\n')}
 
 const EditComponent = ({
@@ -195,15 +201,17 @@ const EditComponent = ({
 }) => {
 ${[...new Set(components.code)].join('\n')}
   return (
-    <React.Fragment>
+    <div {...{className: classNames(style.root, modalsStyle.root)}}>
 ${components.jsx.join('\n')}
-    </React.Fragment>
+    </div>
   )
 }
 export default EditComponent`;
   };
 
-  fs.writeFileSync(filePath, generateEditComponent(businessObject), 'utf-8');
+  fs.writeFileSync(cssPath, '.root {}', 'utf-8');
+  fs.writeFileSync(componentPath, generateEditComponent(businessObject), 'utf-8');
+  
   console.log(`Generating ${objectName}/editComponent.js`);
 }
 
