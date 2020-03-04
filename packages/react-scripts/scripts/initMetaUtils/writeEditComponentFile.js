@@ -52,15 +52,24 @@ function writeEditComponentFile({ businessObject, boPath }) {
       };
     }
 
-    // if (['generic', 'array', 'object', 'objects'].includes(field.type)) {
-      if (['generic', 'object'].includes(field.type)) {
-      
+   
+    if (['generic', 'array', 'object', 'objects'].includes(field.type)) {
       const linkName = field.linkMeta ? toCamel(field.linkMeta) : '';
-      const props = [linkName +'Entities', linkName + 'ApiActions']
-      const code = `      const [${linkName}Search, ${linkName}SearchSet] = React.useState('')
+      const props = [linkName + 'Entities', linkName + 'ApiActions'];
+      const imports = `import TSelect, { SELECT_TYPES } from '$trood/components/TSelect'
+import { getNestedObjectField } from '$trood/helpers/nestedObjects'
+import { RESTIFY_CONFIG } from 'redux-restify'`;
+
+      const getSelectProps = (multi, generic) => {
+        let forEntityProps = '';
+        const code = `      const [${linkName}Search, ${linkName}SearchSet] = React.useState('')
+      const ${linkName}ModelConfig = RESTIFY_CONFIG.registeredModels[${
+          generic ? `model.${linkName}._object` : `'${linkName}'`
+        }]
       const ${linkName}ApiConfig = {
         filter: {
-          q: ${linkName}Search ? 'like(name,*' + ${linkName}Search + ')' : '',
+          q: ${linkName}Search ? \`eq(\${${linkName}ModelConfig.idField},\${${linkName}Search})\` : '',
+          only: ${linkName}ModelConfig.idField,
           depth: 1,
         },
       }
@@ -72,38 +81,69 @@ function writeEditComponentFile({ businessObject, boPath }) {
           ${linkName}ApiActions.loadNextPage(${linkName}ApiConfig)
         }
       }
-      `
+      `;
+        const fieldValue = generic
+          ? `model.${name}[${linkName}ModelConfig.idField] `
+          : `model.${name}`;
 
-      const imports = `import TSelect, { SELECT_TYPES } from '$trood/components/TSelect'
-import { getNestedObjectField } from '$trood/helpers/nestedObjects'`
+        forEntityProps = `
+        items: ${linkName}Array.map(item => ({ value: item[${linkName}ModelConfig.idField] })),
+        values: ${multi ? fieldValue : `${fieldValue} ? [${fieldValue}] : []`},
+        onChange: vals => modelFormActions.changeField(${
+          generic ? `['${name}', ${linkName}ModelConfig.idField]` : `'${name}'`
+        },
+          ${multi ? 'vals' : 'vals[0]'},
+        ),
+        onSearch: (value) => ${linkName}SearchSet(value ? encodeURIComponent(value) : ''),
+        emptyItemsLabel: ${linkName}ArrayIsLoading ? '' : undefined,
+        onScrollToEnd: ${linkName}NextPageAction,
+        isLoading: ${linkName}ArrayIsLoading,
+        missingValueResolver: value => ${linkName}Entities.getById(value).name,`;
 
-      let jsx = '';
-      
-      if (field.type === 'object' || (field.type === 'generic' && !field.linkMetaList)) {
-        jsx = `      <TSelect
-        {...{
+        return {
+          code,
+          componentProps: `
+          ${forEntityProps}
           label: '${name}',
-          items: ${linkName}Array.map(e => ({ value: e.id, label: e.name })),
-          type: SELECT_TYPES.filterDropdown,
-          placeholder: 'Not chosen',
-          values: model.${name} && [model.${name}],
-          onChange: values => modelFormActions.changeField('${name}', values[0]),
-          onInvalid: errs => modelFormActions.setFieldError('${name}', errs),
+          errors: modelErrors.${name},
           onValid: () => modelFormActions.resetFieldError('${name}'),
-          errors: getNestedObjectField(modelErrors, '${name}'),
-          validate: {
-            required: ${!field.optional},
-            checkOnBlur: true,
-          },
-          onSearch: (value) => ${linkName}SearchSet(value ? encodeURIComponent(value) : ''),
-          emptyItemsLabel: ${linkName}ArrayIsLoading ? '' : undefined,
-          onScrollToEnd: ${linkName}NextPageAction,
-          missingValueResolver: value => ${linkName}Entities.getById(value).name,
-          isLoading: ${linkName}ArrayIsLoading,
-        }}
-      />`
+          onInvalid: err => modelFormActions.setFieldError('${name}', err),
+          type: SELECT_TYPES.filterDropdown,
+          multi: ${multi},
+          clearable: ${!field.optional},
+          placeHolder: 'Not set',
+          `,
+        };
+      };
+
+      if (field.type === 'generic') {
+        const componentConfig = getSelectProps(false, true);
+        return {
+          props,
+          imports,
+          code: componentConfig.code,
+          jsx: `<div>
+          <TSelect
+            {...{
+              ${componentConfig.componentProps}
+            }}
+          />
+        </div>`,
+        };
       }
-      return {imports, code, jsx, props};
+
+      const multi = field.type !== 'object';
+      const componentConfig = getSelectProps(multi, false);
+      return {
+        props,
+        imports,
+        code: componentConfig.code,
+        jsx: `<TSelect
+        {...{
+          ${componentConfig.componentProps}
+        }}
+      />`,
+      };
     }
 
     return {
@@ -124,26 +164,28 @@ import { getNestedObjectField } from '$trood/helpers/nestedObjects'`
   };
 
   const generateEditComponent = businessObject => {
-    const components = businessObject.fields.filter(field=>!['id', 'created'].includes(field.name)).reduce(
-      (memo, field) => {
-        const component = getComponent(field);
-        return {
-          imports: [
-            ...memo.imports,
-            ...(component.imports ? [component.imports] : []),
-          ],
-          code: [...memo.code, ...(component.code ? [component.code] : [])],
-          jsx: [...memo.jsx, ...(component.jsx ? [component.jsx] : [])],
-          props: [...memo.props, ...(component.props ? component.props : [])],
-        };
-      },
-      {
-        imports: [],
-        code: [],
-        jsx: [],
-        props: ['model', 'modelErrors', 'modelFormActions'],
-      }
-    );
+    const components = businessObject.fields
+      .filter(field => !['id', 'created'].includes(field.name) && field.linkType === 'outer')
+      .reduce(
+        (memo, field) => {
+          const component = getComponent(field);
+          return {
+            imports: [
+              ...memo.imports,
+              ...(component.imports ? [component.imports] : []),
+            ],
+            code: [...memo.code, ...(component.code ? [component.code] : [])],
+            jsx: [...memo.jsx, ...(component.jsx ? [component.jsx] : [])],
+            props: [...memo.props, ...(component.props ? component.props : [])],
+          };
+        },
+        {
+          imports: [],
+          code: [],
+          jsx: [],
+          props: ['model', 'modelErrors', 'modelFormActions'],
+        }
+      );
 
     return `import React from 'react'
 ${[...new Set(components.imports)].join('\n')}
