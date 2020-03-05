@@ -40,18 +40,17 @@ function writeEditComponentFile({ businessObject, boPath }) {
       return {
         imports:"import DateTimePicker, { PICKER_TYPES } from '$trood/components/DateTimePicker'",
         jsx: `      <DateTimePicker
-            {...{
-              ${getDefaultProps(field)}
-              type: PICKER_TYPES.${
-                field.type === 'datetime' ? 'dateTime' : field.type
-              },
-              validate: {
-                checkOnBlur: true,
-  ${field.type === 'time' ? '' : `              requiredDate: ${!field.optional},`}
-  ${field.type === 'date' ? '' : `              requiredTime: ${!field.optional},`}
+          {...{
+            ${getDefaultProps(field)}
+            type: PICKER_TYPES.${
+              field.type === 'datetime' ? 'dateTime' : field.type
             },
-          }}
-        />`,
+            validate: {
+              checkOnBlur: true,
+${field.type === 'time' ? '' : `              requiredDate: ${!field.optional},\n`}${field.type === 'date' ? '' : `              requiredTime: ${!field.optional},\n`}
+          },
+        }}
+      />`,
       };
     }
 
@@ -68,26 +67,33 @@ function writeEditComponentFile({ businessObject, boPath }) {
       const imports = `import TSelect, { SELECT_TYPES } from '$trood/components/TSelect'
 import { RESTIFY_CONFIG } from 'redux-restify'`;
 
+      
       const targetFieldName = `snakeToCamel(model.${name}._object)`;
       const entities = generic
-        ? `restProps[${targetFieldName} + 'Entities']`
+        ? `${linkName}GenericEnteties`
         : `${linkName}Entities`;
       const apiActions = generic
         ? `restProps[${targetFieldName} + 'ApiActions']`
         : `${linkName}ApiActions`;
 
-      const code = `  const [${linkName}Search, ${linkName}SearchSet] = React.useState('')
+        const entitiesConst = generic ? `  const ${linkName}GenericEnteties = restProps[${targetFieldName} + 'Entities']\n` : '';
+
+      const code = `${entitiesConst}  const [${linkName}Search, ${linkName}SearchSet] = React.useState('')
   const ${linkName}ModelConfig = RESTIFY_CONFIG.registeredModels${
         generic ? `[${targetFieldName}]` : `.${linkName}`
       }
   const ${linkName}ApiConfig = {
     filter: {
-      q: ${linkName}Search ? \`eq(\${${linkName}ModelConfig.idField},\${${linkName}Search})\` : '',
+      q: ${linkName}Search 
+        ? \`eq(\${${linkName}ModelConfig.idField},\${${linkName}Search})\`
+        : '',
       depth: 1,
     },
   }
   const ${linkName}Array = ${entities}.getArray(${linkName}ApiConfig)
-  const ${linkName}ArrayIsLoading = ${entities}.getIsLoadingArray(${linkName}ApiConfig)
+  const ${linkName}ArrayIsLoading = ${entities}.getIsLoadingArray(
+    ${linkName}ApiConfig,
+  )
   const ${linkName}NextPage = ${entities}.getNextPage(${linkName}ApiConfig)
   const ${linkName}NextPageAction = () => {
     if (${linkName}NextPage) {
@@ -100,8 +106,13 @@ import { RESTIFY_CONFIG } from 'redux-restify'`;
         ? `model.${name}[${linkName}ModelConfig.idField] `
         : `model.${name}`;
 
-      const componentProps = `items: ${linkName}Array.map(item => ({ value: item[${linkName}ModelConfig.idField], label: item.name || item[${linkName}ModelConfig.idField] })),
-          values: ${multi ? fieldValue : `${fieldValue} ? [${fieldValue}] : []`},
+      const selectProps = `items: ${linkName}Array.map(item => ({
+            value: item[${linkName}ModelConfig.idField], 
+            label: item.name || item[${linkName}ModelConfig.idField],
+          })),
+          values: ${multi ? fieldValue : `${fieldValue} 
+            ? [${fieldValue}] 
+            : []`},
           onChange: vals => modelFormActions.changeField(${
             generic ? `['${name}', ${linkName}ModelConfig.idField]` : `'${name}'`
           },
@@ -128,32 +139,34 @@ import { RESTIFY_CONFIG } from 'redux-restify'`;
           props,
           imports,
           code,
-          jsx: `<div className={modalsStyle.control}>
-          <TSelect 
-            {...{
-              className: undefined,
-              label: '${name}_type',
-              items: [${field.linkMetaList
-                .map(value => `{ value: '${value}' }`)
-                .join(', ')}],
-              type: SELECT_TYPES.filterDropdown,
-              clearable: true,
-              values: model.${name} && model.${name}._object ? [model.${name}._object] : [],
-              placeHolder: 'Not set',
-              onChange: vals => modelFormActions.changeField('${name}', { _object: vals[0] }),
-              onInvalid: err => modelFormActions.setFieldError('${name}', err),
-              validate: {
-                checkOnBlur: true,
-                required: ${!field.optional},
-              },
-            }} 
-          />
-          <TSelect
-            {...{
-        ${componentProps}
-            }}
-          />
-        </div>`,
+          jsx: `      <div className={style.row}>
+        <TSelect 
+          {...{
+            className: undefined,
+            label: '${name}_type',
+            items: [
+${field.linkMetaList
+              .map(value => `              { value: '${value}' }`)
+              .join(',\n')},
+            ],
+            type: SELECT_TYPES.filterDropdown,
+            clearable: true,
+            values: model.${name} && model.${name}._object ? [model.${name}._object] : [],
+            placeHolder: 'Not set',
+            onChange: vals => modelFormActions.changeField('${name}', { _object: vals[0] }),
+            onInvalid: err => modelFormActions.setFieldError('${name}', err),
+            validate: {
+              checkOnBlur: true,
+              required: ${!field.optional},
+            },
+          }} 
+        />
+        <TSelect
+          {...{
+      ${selectProps}
+          }}
+        />
+      </div>`,
         };
       }
 
@@ -164,7 +177,7 @@ import { RESTIFY_CONFIG } from 'redux-restify'`;
         jsx: `      <TSelect
         {...{
           className: modalsStyle.control,
-          ${componentProps}
+          ${selectProps}
         }}
       />`,
       };
@@ -235,15 +248,30 @@ const EditComponent = ({
 }) => {
 ${[...new Set(components.code)].join('\n')}
   return (
-    <div {...{className: classNames(style.root, modalsStyle.root)}}>
+    <div className={classNames(style.root, modalsStyle.root)}>
 ${components.jsx.join('\n')}
     </div>
   )
 }
+
 export default EditComponent`;
   };
 
-  fs.writeFileSync(cssPath, '.root {}', 'utf-8');
+    const css= `.root {}
+
+.row {
+  composes: root;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+}
+
+.row > * {
+  width: calc(50% - 8px);
+}
+`
+
+  fs.writeFileSync(cssPath, css, 'utf-8');
   fs.writeFileSync(
     componentPath,
     generateEditComponent(businessObject),
