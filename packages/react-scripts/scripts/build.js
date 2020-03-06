@@ -46,7 +46,11 @@ checkBrowsers(paths.appPath, isInteractive)
     if (!process.argv.includes('ignore-npm')) {
       execSync(`${cdCommand} && npm install --only=prod`, { stdio: 'inherit' });
     }
-    execSync(`${cdCommand} && npm run build`, { stdio: 'inherit' });
+    try {
+      execSync(`${cdCommand} && npm run build --silen`, { stdio: 'inherit' });
+    } catch {
+      process.exit(1);
+    }
     fs.copySync(path.join(paths.finalProjectDir, 'build'), 'build');
   })
   .catch(err => {

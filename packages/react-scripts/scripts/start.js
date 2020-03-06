@@ -93,12 +93,15 @@ checkBrowsers(paths.appPath, isInteractive)
 
     const startProcess = spawn(
       /^win/.test(process.platform) ? 'npm.cmd' : 'npm',
-      ['run', 'start'],
+      ['run', 'start', '--silent'],
       {
         stdio: 'inherit',
         cwd: paths.finalProjectDir,
       }
     );
+    startProcess.on('close', code => {
+      if (code > 0) process.exit(1)
+    })
   })
   .catch(err => {
     if (err && err.message) {
