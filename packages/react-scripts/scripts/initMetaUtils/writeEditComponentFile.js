@@ -16,7 +16,7 @@ function writeEditComponentFile({ businessObject, boPath }) {
   const objectName = toCamel(businessObject.name);
   const componentPath = boPath + '/editComponent.js';
   const cssPath = boPath + '/editComponent.css';
-  // if (fs.existsSync(componentPath)) return;
+  if (fs.existsSync(componentPath)) return;
 
   const getComponent = field => {
     const name = toCamel(field.name);

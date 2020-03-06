@@ -24,15 +24,15 @@ async function initMeta() {
     )) || defaultBoCollectionName;
   const boCollectionPath = appPath + '/src/businessObjects/' + boCollectionName;
   makeBoFolder(boCollectionPath);
-  // writeConfigFile({ meta, appPath, boCollectionName });
-  // writeBoConfigFile({ meta, boCollectionPath, boCollectionName });
+  writeConfigFile({ meta, appPath, boCollectionName });
+  writeBoConfigFile({ meta, boCollectionPath, boCollectionName });
   meta.forEach(businessObject => {
     const objectName = toCamel(businessObject.name);
     const boPath = boCollectionPath + '/' + objectName;
     makeBoFolder(boPath);
     writeEditComponentFile({ businessObject, boPath })
-    // writeModelFile({ businessObject, boPath });
-    // writeFormFile({ businessObject, boPath });
+    writeModelFile({ businessObject, boPath });
+    writeFormFile({ businessObject, boPath });
     writeIndexFile({ businessObject, boPath });
   });
 }
