@@ -4,12 +4,12 @@ const { toCamel } = require('./common');
 const getDefaultProps = field => {
   const name = toCamel(field.name);
   return `label: '${name}',
-            className: modalsStyle.control,
-            value: model.${name},
-            errors: modelErrors.${name},
-            onChange: val => modelFormActions.changeField('${name}', val),
-            onValid: () => modelFormActions.resetFieldError('${name}'),
-            onInvalid: err => modelFormActions.setFieldError('${name}', err),`;
+          className: modalsStyle.control,
+          value: model.${name},
+          errors: modelErrors.${name},
+          onChange: val => modelFormActions.changeField('${name}', val),
+          onValid: () => modelFormActions.resetFieldError('${name}'),
+          onInvalid: err => modelFormActions.setFieldError('${name}', err),`;
 };
 
 function writeEditComponentFile({ businessObject, boPath }) {
@@ -17,6 +17,13 @@ function writeEditComponentFile({ businessObject, boPath }) {
   const componentPath = boPath + '/editComponent.js';
   const cssPath = boPath + '/editComponent.css';
   if (fs.existsSync(componentPath)) return;
+
+  const hasGeneric = businessObject.fields.some(
+    field => field.type === 'generic' && field.linkType !== 'outer'
+  )
+  const hasSelect = hasGeneric || businessObject.fields.some(
+    field => ['generic', 'array', 'object', 'objects'].includes(field.type) && field.linkType !== 'outer'
+  )
 
   const getComponent = field => {
     const name = toCamel(field.name);
@@ -40,14 +47,15 @@ function writeEditComponentFile({ businessObject, boPath }) {
       return {
         imports:"import DateTimePicker, { PICKER_TYPES } from '$trood/components/DateTimePicker'",
         jsx: `      <DateTimePicker
-          {...{
-            ${getDefaultProps(field)}
-            type: PICKER_TYPES.${
-              field.type === 'datetime' ? 'dateTime' : field.type
-            },
-            validate: {
-              checkOnBlur: true,
-${field.type === 'time' ? '' : `              requiredDate: ${!field.optional},\n`}${field.type === 'date' ? '' : `              requiredTime: ${!field.optional},\n`}
+        {...{
+          ${getDefaultProps(field)}
+          type: PICKER_TYPES.${
+            field.type === 'datetime' ? 'dateTime' : field.type
+          },
+          validate: {
+            checkOnBlur: true,${field.type === 'time' ? '' : `
+            requiredDate: ${!field.optional},`}${field.type === 'date' ? '' : `
+            requiredTime: ${!field.optional},`}
           },
         }}
       />`,
@@ -56,6 +64,7 @@ ${field.type === 'time' ? '' : `              requiredDate: ${!field.optional},\
 
     if (['generic', 'array', 'object', 'objects'].includes(field.type)) {
       const generic = field.type === 'generic';
+      const genericSpacing = generic ? '  ' : '';
       const multi = field.type !== 'object' && !generic;
       const linkName = field.linkMeta ? toCamel(field.linkMeta) : name;
 
@@ -67,20 +76,21 @@ ${field.type === 'time' ? '' : `              requiredDate: ${!field.optional},\
       const imports = `import TSelect, { SELECT_TYPES } from '$trood/components/TSelect'
 import { RESTIFY_CONFIG } from 'redux-restify'`;
 
+      const entitiesNameConst = generic ? `  const ${linkName}ModelName = snakeToCamel(model.${name}._object)\n` : '';
+      const entitiesConst = generic ? `  const ${linkName}GenericEnteties = restProps[${linkName}ModelName + 'Entities']\n` : '';
       
-      const targetFieldName = `snakeToCamel(model.${name}._object)`;
       const entities = generic
         ? `${linkName}GenericEnteties`
         : `${linkName}Entities`;
       const apiActions = generic
-        ? `restProps[${targetFieldName} + 'ApiActions']`
+        ? `restProps[${linkName}ModelName + 'ApiActions']`
         : `${linkName}ApiActions`;
 
-        const entitiesConst = generic ? `  const ${linkName}GenericEnteties = restProps[${targetFieldName} + 'Entities']\n` : '';
+        
 
-      const code = `${entitiesConst}  const [${linkName}Search, ${linkName}SearchSet] = React.useState('')
+      const code = `${entitiesNameConst}${entitiesConst}  const [${linkName}Search, ${linkName}SearchSet] = useState('')
   const ${linkName}ModelConfig = RESTIFY_CONFIG.registeredModels${
-        generic ? `[${targetFieldName}]` : `.${linkName}`
+        generic ? `[${linkName}ModelName]` : `.${linkName}`
       }
   const ${linkName}ApiConfig = {
     filter: {
@@ -106,33 +116,32 @@ import { RESTIFY_CONFIG } from 'redux-restify'`;
         ? `model.${name}[${linkName}ModelConfig.idField] `
         : `model.${name}`;
 
-      const selectProps = `items: ${linkName}Array.map(item => ({
-            value: item[${linkName}ModelConfig.idField], 
-            label: item.name || item[${linkName}ModelConfig.idField],
-          })),
-          values: ${multi ? fieldValue : `${fieldValue} 
-            ? [${fieldValue}] 
-            : []`},
-          onChange: vals => modelFormActions.changeField(${
+      const selectProps = `${genericSpacing}          items: ${linkName}Array.map(item => ({
+${genericSpacing}            value: item[${linkName}ModelConfig.idField], 
+${genericSpacing}            label: item.name || item[${linkName}ModelConfig.idField],
+${genericSpacing}          })),
+${genericSpacing}          values: ${multi ? fieldValue : `${fieldValue} 
+${genericSpacing}            ? [${fieldValue}] 
+${genericSpacing}            : []`},
+${genericSpacing}          onChange: vals => modelFormActions.changeField(${
             generic ? `['${name}', ${linkName}ModelConfig.idField]` : `'${name}'`
           },
-            ${multi ? 'vals' : 'vals[0]'},
-          ),
-          onSearch: (value) => ${linkName}SearchSet(value ? encodeURIComponent(value) : ''),
-          emptyItemsLabel: ${linkName}ArrayIsLoading ? '' : undefined,
-          onScrollToEnd: ${linkName}NextPageAction,
-          isLoading: ${linkName}ArrayIsLoading,
-          missingValueResolver: value => ${entities}.getById(value)[${
-          generic ? `${linkName}ModelConfig.idField` : `'${name}'`
-        }],
-          label: '${name}',
-          errors: modelErrors.${name},
-          onValid: () => modelFormActions.resetFieldError('${name}'),
-          onInvalid: err => modelFormActions.setFieldError('${name}', err),
-          type: SELECT_TYPES.filterDropdown,
-          multi: ${multi},
-          clearable: ${!field.optional},
-          placeHolder: 'Not set',`;
+${genericSpacing}            ${multi ? 'vals' : 'vals[0]'},
+${genericSpacing}          ),
+${genericSpacing}          onSearch: (value) => ${linkName}SearchSet(value ? encodeURIComponent(value) : ''),
+${genericSpacing}          emptyItemsLabel: ${linkName}ArrayIsLoading ? '' : undefined,
+${genericSpacing}          onScrollToEnd: ${linkName}NextPageAction,
+${genericSpacing}          isLoading: ${linkName}ArrayIsLoading,${generic ? '' :`
+${genericSpacing}          missingValueResolver: value => 
+${genericSpacing}            ${entities}.getById(value)[${linkName}ModelConfig.idField],`}
+${genericSpacing}          label: '${name}',
+${genericSpacing}          errors: modelErrors.${name},
+${genericSpacing}          onValid: () => modelFormActions.resetFieldError('${name}'),
+${genericSpacing}          onInvalid: err => modelFormActions.setFieldError('${name}', err),
+${genericSpacing}          type: SELECT_TYPES.filterDropdown,
+${genericSpacing}          multi: ${multi},
+${genericSpacing}          clearable: ${!field.optional},
+${genericSpacing}          placeHolder: 'Not set',`;
 
       if (generic) {
         return {
@@ -150,7 +159,7 @@ ${field.linkMetaList
               .join(',\n')},
             ],
             type: SELECT_TYPES.filterDropdown,
-            clearable: true,
+            clearable: ${!field.optional},
             values: model.${name} && model.${name}._object ? [model.${name}._object] : [],
             placeHolder: 'Not set',
             onChange: vals => modelFormActions.changeField('${name}', { _object: vals[0] }),
@@ -163,7 +172,7 @@ ${field.linkMetaList
         />
         <TSelect
           {...{
-      ${selectProps}
+${selectProps}
           }}
         />
       </div>`,
@@ -177,7 +186,7 @@ ${field.linkMetaList
         jsx: `      <TSelect
         {...{
           className: modalsStyle.control,
-          ${selectProps}
+${selectProps}
         }}
       />`,
       };
@@ -186,16 +195,16 @@ ${field.linkMetaList
     return {
       imports: "import TInput, { INPUT_TYPES } from '$trood/components/TInput'",
       jsx: `      <TInput
-          {...{
-            type: ${
-              field.type === 'number' ? 'INPUT_TYPES.float' : 'INPUT_TYPES.multi'
-            },
-            ${getDefaultProps(field)}
-            validate: {
-              checkOnBlur: true,
-              required: ${!field.optional},
-            },
-          }}
+        {...{
+          type: ${
+            field.type === 'number' ? 'INPUT_TYPES.float' : 'INPUT_TYPES.multi'
+          },
+          ${getDefaultProps(field)}
+          validate: {
+            checkOnBlur: true,
+            required: ${!field.optional},
+          },
+        }}
       />`,
     };
   };
@@ -204,7 +213,7 @@ ${field.linkMetaList
     const components = businessObject.fields
       .filter(
         field =>
-          !(field.name === 'id' && field.optional === true) &&
+          !(field.name === toCamel(businessObject.key) && field.optional === true) &&
           field.linkType !== 'outer'
       )
       .reduce(
@@ -228,15 +237,13 @@ ${field.linkMetaList
         }
       );
 
-    return `import React from 'react'
+    return `import React${hasSelect ? ', { useState }': ''} from 'react'
 import style from './editComponent.css'
 import modalsStyle from '$trood/styles/modals.css'
 import classNames from 'classnames'
 ${[...new Set(components.imports)].join('\n')}
 ${
-  businessObject.fields.some(
-    field => field.type === 'generic' && field.linkType !== 'outer'
-  )
+  hasGeneric
     ? "import { snakeToCamel } from '$trood/helpers/namingNotation'"
     : ''
 }
@@ -257,8 +264,9 @@ ${components.jsx.join('\n')}
 export default EditComponent`;
   };
 
+    
     const css= `.root {}
-
+${hasGeneric ? `
 .row {
   composes: root;
   display: flex;
@@ -269,7 +277,7 @@ export default EditComponent`;
 .row > * {
   width: calc(50% - 8px);
 }
-`
+`:'' }`
 
   fs.writeFileSync(cssPath, css, 'utf-8');
   fs.writeFileSync(
