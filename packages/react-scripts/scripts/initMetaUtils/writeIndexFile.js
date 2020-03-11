@@ -19,6 +19,8 @@ function writeIndexFile({ businessObject, boPath }) {
     exportObject += `${exportObject.endsWith("\n") ? "" : "\n"}  model,\n`;
   if (!/form(,|:)/.test(exportObject))
     exportObject += `${exportObject.endsWith("\n") ? "" : "\n"}  form,\n`;
+  if (!/editComponent(,|:)/.test(exportObject))
+    exportObject += `${exportObject.endsWith("\n") ? "" : "\n"}  editComponent,\n`;
 
   indexFile = indexFile.replace(
     exportRegExp,
@@ -28,7 +30,9 @@ function writeIndexFile({ businessObject, boPath }) {
     indexFile = "import model from './model'\n" + indexFile;
   if (!/import form /.test(indexFile))
     indexFile = "import form from './form'\n" + indexFile;
-
+  if (!/import editComponent /.test(indexFile))
+    indexFile = "import editComponent from './editComponent'\n" + indexFile;
+    
   fs.writeFileSync(filePath, indexFile, "utf-8");
   console.log(`Generating ${objectName}/index.js`);
 }
