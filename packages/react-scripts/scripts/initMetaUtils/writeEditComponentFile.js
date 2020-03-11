@@ -140,7 +140,7 @@ ${genericSpacing}          onValid: () => modelFormActions.resetFieldError('${na
 ${genericSpacing}          onInvalid: err => modelFormActions.setFieldError('${name}', err),
 ${genericSpacing}          type: SELECT_TYPES.filterDropdown,
 ${genericSpacing}          multi: ${multi},
-${genericSpacing}          clearable: ${!field.optional},
+${genericSpacing}          clearable: ${field.optional},
 ${genericSpacing}          placeHolder: 'Not set',`;
 
       if (generic) {
@@ -159,7 +159,7 @@ ${field.linkMetaList
               .join(',\n')},
             ],
             type: SELECT_TYPES.filterDropdown,
-            clearable: ${!field.optional},
+            clearable: ${field.optional},
             values: model.${name} && model.${name}._object ? [model.${name}._object] : [],
             placeHolder: 'Not set',
             onChange: vals => modelFormActions.changeField('${name}', { _object: vals[0] }),
