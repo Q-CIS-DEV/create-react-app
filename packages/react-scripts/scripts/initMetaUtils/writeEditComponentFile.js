@@ -1,16 +1,6 @@
 const fs = require('fs');
 const { toCamel } = require('./common');
 
-const getDefaultProps = field => {
-  const name = toCamel(field.name);
-  return `label: '${name}',
-          className: modalsStyle.control,
-          value: model.${name},
-          errors: modelErrors.${name},
-          onChange: val => modelFormActions.changeField('${name}', val),
-          onValid: () => modelFormActions.resetFieldError('${name}'),
-          onInvalid: err => modelFormActions.setFieldError('${name}', err),`;
-};
 
 function writeEditComponentFile({ businessObject, boPath }) {
   const objectName = toCamel(businessObject.name);
@@ -30,10 +20,9 @@ function writeEditComponentFile({ businessObject, boPath }) {
 
     if (field.type === 'bool') {
       return {
-        imports: "import TCheckbox from '$trood/components/TCheckbox'",
-        jsx: `      <TCheckbox
+        jsx: `      <ModalComponents.ModalCheckbox
           {...{
-            ${getDefaultProps(field)}
+            fieldName: '${name}',
             validate: {
               checkOnBlur: true,
               required: ${!field.optional},
@@ -45,10 +34,10 @@ function writeEditComponentFile({ businessObject, boPath }) {
 
     if (['date', 'time', 'datetime'].includes(field.type)) {
       return {
-        imports:"import DateTimePicker, { PICKER_TYPES } from '$trood/components/DateTimePicker'",
-        jsx: `      <DateTimePicker
+        imports:"import { PICKER_TYPES } from '$trood/components/DateTimePicker'",
+        jsx: `      <ModalComponents.ModalDateTimePicker
         {...{
-          ${getDefaultProps(field)}
+          fieldName: '${name}',
           type: PICKER_TYPES.${
             field.type === 'datetime' ? 'dateTime' : field.type
           },
@@ -73,8 +62,8 @@ function writeEditComponentFile({ businessObject, boPath }) {
         linkName + 'ApiActions',
         ...(generic ? ['...restProps'] : []),
       ];
-      const imports = `import TSelect, { SELECT_TYPES } from '$trood/components/TSelect'
-import { RESTIFY_CONFIG } from 'redux-restify'`;
+      const imports = generic ? `import TSelect, { SELECT_TYPES } from '$trood/components/TSelect'
+import { RESTIFY_CONFIG } from 'redux-restify'`: '';
 
       const entitiesNameConst = generic ? `  const ${linkName}ModelName = snakeToCamel(model.${name}._object)\n` : '';
       const entitiesConst = generic ? `  const ${linkName}GenericEnteties = restProps[${linkName}ModelName + 'Entities']\n` : '';
@@ -120,28 +109,14 @@ import { RESTIFY_CONFIG } from 'redux-restify'`;
 ${genericSpacing}            value: item[${linkName}ModelConfig.idField], 
 ${genericSpacing}            label: item.name || item[${linkName}ModelConfig.idField],
 ${genericSpacing}          })),
-${genericSpacing}          values: ${multi ? fieldValue : `${fieldValue} 
-${genericSpacing}            ? [${fieldValue}] 
-${genericSpacing}            : []`},
-${genericSpacing}          onChange: vals => modelFormActions.changeField(${
-            generic ? `['${name}', ${linkName}ModelConfig.idField]` : `'${name}'`
-          },
-${genericSpacing}            ${multi ? 'vals' : 'vals[0]'},
-${genericSpacing}          ),
 ${genericSpacing}          onSearch: (value) => ${linkName}SearchSet(value ? encodeURIComponent(value) : ''),
 ${genericSpacing}          emptyItemsLabel: ${linkName}ArrayIsLoading ? '' : undefined,
 ${genericSpacing}          onScrollToEnd: ${linkName}NextPageAction,
 ${genericSpacing}          isLoading: ${linkName}ArrayIsLoading,${generic ? '' :`
 ${genericSpacing}          missingValueResolver: value => 
 ${genericSpacing}            ${entities}.getById(value)[${linkName}ModelConfig.idField],`}
-${genericSpacing}          label: '${name}',
-${genericSpacing}          errors: modelErrors.${name},
-${genericSpacing}          onValid: () => modelFormActions.resetFieldError('${name}'),
-${genericSpacing}          onInvalid: err => modelFormActions.setFieldError('${name}', err),
-${genericSpacing}          type: SELECT_TYPES.filterDropdown,
 ${genericSpacing}          multi: ${multi},
-${genericSpacing}          clearable: ${!field.optional},
-${genericSpacing}          placeHolder: 'Not set',`;
+${genericSpacing}          clearable: ${!field.optional},`;
 
       if (generic) {
         return {
@@ -149,7 +124,7 @@ ${genericSpacing}          placeHolder: 'Not set',`;
           imports,
           code,
           jsx: `      <div className={style.row}>
-        <TSelect 
+          <TSelect 
           {...{
             className: undefined,
             label: '${name}_type',
@@ -170,9 +145,16 @@ ${field.linkMetaList
             },
           }} 
         />
-        <TSelect
+        <ModalComponents.ModalSelect
           {...{
+            fieldName: '${field.name}',
 ${selectProps}
+${genericSpacing}          onChange: vals => modelFormActions.changeField(['${name}', ${linkName}ModelConfig.idField],
+${genericSpacing}            ${multi ? 'vals' : 'vals[0]'},
+${genericSpacing}          ),
+${genericSpacing}          values: ${multi ? fieldValue : `${fieldValue} 
+${genericSpacing}            ? [${fieldValue}] 
+${genericSpacing}            : []`},
           }}
         />
       </div>`,
@@ -183,9 +165,9 @@ ${selectProps}
         props,
         imports,
         code: code,
-        jsx: `      <TSelect
+        jsx: `      <ModalComponents.ModalSelect
         {...{
-          className: modalsStyle.control,
+          fieldName: '${field.name}',
 ${selectProps}
         }}
       />`,
@@ -193,13 +175,13 @@ ${selectProps}
     }
 
     return {
-      imports: "import TInput, { INPUT_TYPES } from '$trood/components/TInput'",
-      jsx: `      <TInput
+      imports: "import { INPUT_TYPES } from '$trood/components/TInput'",
+      jsx: `      <ModalComponents.ModalInput
         {...{
+          fieldName: '${field.name}',
           type: ${
             field.type === 'number' ? 'INPUT_TYPES.float' : 'INPUT_TYPES.multi'
           },
-          ${getDefaultProps(field)}
           validate: {
             checkOnBlur: true,
             required: ${!field.optional},
@@ -233,7 +215,7 @@ ${selectProps}
           imports: [],
           code: [],
           jsx: [],
-          props: ['model', 'modelErrors', 'modelFormActions'],
+          props: ['model', 'modelErrors', 'modelFormActions', 'ModalComponents'],
         }
       );
 
