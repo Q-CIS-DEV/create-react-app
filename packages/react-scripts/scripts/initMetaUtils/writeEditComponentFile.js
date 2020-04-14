@@ -60,10 +60,9 @@ function writeEditComponentFile({ businessObject, boPath }) {
       const props = [
         linkName + 'Entities',
         linkName + 'ApiActions',
-        ...(generic ? ['...restProps'] : []),
+        ...(generic ? ['model', 'modelFormActions', '...restProps'] : []),
       ];
-      const imports = generic ? `import TSelect, { SELECT_TYPES } from '$trood/components/TSelect'
-import { RESTIFY_CONFIG } from 'redux-restify'`: '';
+      const imports = `import { RESTIFY_CONFIG } from 'redux-restify'`;
 
       const entitiesNameConst = generic ? `  const ${linkName}ModelName = snakeToCamel(model.${name}._object)\n` : '';
       const entitiesConst = generic ? `  const ${linkName}GenericEnteties = restProps[${linkName}ModelName + 'Entities']\n` : '';
@@ -74,8 +73,6 @@ import { RESTIFY_CONFIG } from 'redux-restify'`: '';
       const apiActions = generic
         ? `restProps[${linkName}ModelName + 'ApiActions']`
         : `${linkName}ApiActions`;
-
-        
 
       const code = `${entitiesNameConst}${entitiesConst}  const [${linkName}Search, ${linkName}SearchSet] = useState('')
   const ${linkName}ModelConfig = RESTIFY_CONFIG.registeredModels${
@@ -215,7 +212,7 @@ ${selectProps}
           imports: [],
           code: [],
           jsx: [],
-          props: ['model', 'modelErrors', 'modelFormActions', 'ModalComponents'],
+          props: ['ModalComponents'],
         }
       );
 
@@ -226,7 +223,8 @@ import classNames from 'classnames'
 ${[...new Set(components.imports)].join('\n')}
 ${
   hasGeneric
-    ? "import { snakeToCamel } from '$trood/helpers/namingNotation'"
+    ? `import { snakeToCamel } from '$trood/helpers/namingNotation'
+import TSelect, { SELECT_TYPES } from '$trood/components/TSelect'`
     : ''
 }
 
