@@ -34,7 +34,8 @@ function writeEditComponentFile({ businessObject, boPath }) {
 
     if (['date', 'time', 'datetime'].includes(field.type)) {
       return {
-        imports:"import { PICKER_TYPES } from '$trood/components/DateTimePicker'",
+        imports:`import { PICKER_TYPES } from '$trood/components/DateTimePicker'
+import { templateApplyValues } from '$trood/helpers/templates'`,
         jsx: `      <ModalComponents.ModalDateTimePicker
         {...{
           fieldName: '${name}',
@@ -78,6 +79,9 @@ function writeEditComponentFile({ businessObject, boPath }) {
   const ${linkName}ModelConfig = RESTIFY_CONFIG.registeredModels${
         generic ? `[${linkName}ModelName]` : `.${linkName}`
       }
+  const ${linkName}Template = ${linkName}ModelConfig.views.selectOption ||
+    ${linkName}ModelConfig.views.default ||
+    \`${linkName}/{\${${linkName}ModelConfig.idField}}\`
   const ${linkName}ApiConfig = {
     filter: {
       q: ${linkName}Search 
@@ -104,7 +108,7 @@ function writeEditComponentFile({ businessObject, boPath }) {
 
       const selectProps = `${genericSpacing}          items: ${linkName}Array.map(item => ({
 ${genericSpacing}            value: item[${linkName}ModelConfig.idField], 
-${genericSpacing}            label: item.name || item[${linkName}ModelConfig.idField],
+${genericSpacing}            label: templateApplyValues(${linkName}Template, item),
 ${genericSpacing}          })),
 ${genericSpacing}          onSearch: (value) => ${linkName}SearchSet(value ? encodeURIComponent(value) : ''),
 ${genericSpacing}          emptyItemsLabel: ${linkName}ArrayIsLoading ? '' : undefined,
