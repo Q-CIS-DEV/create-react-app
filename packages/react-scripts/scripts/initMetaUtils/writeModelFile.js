@@ -82,6 +82,18 @@ function writeModelFile({ businessObject, boPath }) {
         })
         .join('\n') +
       '\n  },\n' +
+      '  meta: [\n' +
+      businessObject.fields.map(item=>{
+        const objectMeta = {}
+        Object.keys(item).forEach(key=>{
+          if (['type', 'linkMeta', 'linkMetaList', 'linkType', 'optional'].some(targetFiled=>targetFiled===key)){
+            objectMeta[key] = item[key]
+          }
+        })
+        
+        return parseObject(objectMeta, '    ')
+      }).join(',\n') + ',\n' +
+      '  ]\n' +
       '}';
     return modelFile;
   }
