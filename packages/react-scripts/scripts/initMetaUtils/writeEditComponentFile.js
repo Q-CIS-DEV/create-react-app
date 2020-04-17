@@ -117,7 +117,7 @@ ${genericSpacing}          isLoading: ${linkName}ArrayIsLoading,${generic ? '' :
 ${genericSpacing}          missingValueResolver: value => 
 ${genericSpacing}            ${entities}.getById(value)[${linkName}ModelConfig.idField],`}
 ${genericSpacing}          multi: ${multi},
-${genericSpacing}          clearable: ${!field.optional},`;
+${genericSpacing}          clearable: ${field.optional},`;
 
       if (generic) {
         return {
@@ -135,7 +135,7 @@ ${field.linkMetaList
               .join(',\n')},
             ],
             type: SELECT_TYPES.filterDropdown,
-            clearable: ${!field.optional},
+            clearable: ${field.optional},
             values: model.${name} && model.${name}._object ? [model.${name}._object] : [],
             placeHolder: 'Not set',
             onChange: vals => modelFormActions.changeField('${name}', { _object: vals[0] }),
