@@ -102,10 +102,6 @@ import { templateApplyValues } from '$trood/helpers/templates'`,
   }
       `;
 
-      const fieldValue = generic
-        ? `model.${name}[${linkName}ModelConfig.idField] `
-        : `model.${name}`;
-
       const selectProps = `${genericSpacing}          items: ${linkName}Array.map(item => ({
 ${genericSpacing}            value: item[${linkName}ModelConfig.idField], 
 ${genericSpacing}            label: templateApplyValues(${linkName}Template, item),
@@ -125,8 +121,9 @@ ${genericSpacing}          clearable: ${field.optional},`;
           imports,
           code,
           jsx: `      <div className={style.row}>
-          <TSelect 
+        <ModalComponents.ModalSelect
           {...{
+            fieldName: ['${name}', '_object'],
             className: undefined,
             label: '${name}_type',
             items: [
@@ -134,12 +131,8 @@ ${field.linkMetaList
               .map(value => `              { value: '${value}' }`)
               .join(',\n')},
             ],
-            type: SELECT_TYPES.filterDropdown,
             clearable: ${field.optional},
-            values: model.${name} && model.${name}._object ? [model.${name}._object] : [],
-            placeHolder: 'Not set',
             onChange: vals => modelFormActions.changeField('${name}', { _object: vals[0] }),
-            onInvalid: err => modelFormActions.setFieldError('${name}', err),
             validate: {
               checkOnBlur: true,
               required: ${!field.optional},
@@ -148,14 +141,8 @@ ${field.linkMetaList
         />
         <ModalComponents.ModalSelect
           {...{
-            fieldName: '${field.name}',
+            fieldName: ['${name}', ${linkName}ModelConfig.idField],
 ${selectProps}
-${genericSpacing}          onChange: vals => modelFormActions.changeField(['${name}', ${linkName}ModelConfig.idField],
-${genericSpacing}            ${multi ? 'vals' : 'vals[0]'},
-${genericSpacing}          ),
-${genericSpacing}          values: ${multi ? fieldValue : `${fieldValue} 
-${genericSpacing}            ? [${fieldValue}] 
-${genericSpacing}            : []`},
           }}
         />
       </div>`,
@@ -168,7 +155,7 @@ ${genericSpacing}            : []`},
         code: code,
         jsx: `      <ModalComponents.ModalSelect
         {...{
-          fieldName: '${field.name}',
+          fieldName: '${name}',
 ${selectProps}
         }}
       />`,
@@ -179,7 +166,7 @@ ${selectProps}
       imports: "import { INPUT_TYPES } from '$trood/components/TInput'",
       jsx: `      <ModalComponents.ModalInput
         {...{
-          fieldName: '${field.name}',
+          fieldName: '${name}',
           type: ${
             field.type === 'number' ? 'INPUT_TYPES.float' : 'INPUT_TYPES.multi'
           },
@@ -227,8 +214,7 @@ import classNames from 'classnames'
 ${[...new Set(components.imports)].join('\n')}
 ${
   hasGeneric
-    ? `import { snakeToCamel } from '$trood/helpers/namingNotation'
-import TSelect, { SELECT_TYPES } from '$trood/components/TSelect'`
+    ? `import { snakeToCamel } from '$trood/helpers/namingNotation'`
     : ''
 }
 

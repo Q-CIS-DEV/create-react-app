@@ -56,11 +56,14 @@ function writeModelFile({ businessObject, boPath }) {
         return { ...memo, ['RestifyGenericForeignKey']: true };
       return memo;
     }, {});
+
     const restifyImportsKey = Object.keys(restifyImports);
+
     const resifyImportRow =
       restifyImportsKey.length > 0
         ? `import { ${restifyImportsKey.join(', ')} } from 'redux-restify'\n`
         : '';
+
     const modelFile =
       resifyImportRow +
       "import { messages } from '$trood/mainConstants'\n" +
@@ -82,7 +85,7 @@ function writeModelFile({ businessObject, boPath }) {
         })
         .join('\n') +
       '\n  },\n' +
-      '  meta: [\n' +
+      '  meta: {\n' +
       businessObject.fields.map(item=>{
         const objectMeta = {}
         Object.keys(item).forEach(key=>{
@@ -90,10 +93,9 @@ function writeModelFile({ businessObject, boPath }) {
             objectMeta[key] = item[key]
           }
         })
-        
-        return parseObject(objectMeta, '    ')
+        return '    ' + item.name + ': ' + parseObject(objectMeta, '    ')
       }).join(',\n') + ',\n' +
-      '  ]\n' +
+      '  },\n' +
       '}';
     return modelFile;
   }
