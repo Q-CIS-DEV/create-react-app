@@ -34,8 +34,7 @@ function writeEditComponentFile({ businessObject, boPath }) {
 
     if (['date', 'time', 'datetime'].includes(field.type)) {
       return {
-        imports:`import { PICKER_TYPES } from '$trood/components/DateTimePicker'
-import { templateApplyValues } from '$trood/helpers/templates'`,
+        imports:`import { PICKER_TYPES } from '$trood/components/DateTimePicker'`,
         jsx: `      <ModalComponents.ModalDateTimePicker
         {...{
           fieldName: '${name}',
@@ -63,7 +62,8 @@ import { templateApplyValues } from '$trood/helpers/templates'`,
         linkName + 'ApiActions',
         ...(generic ? ['model', 'modelFormActions', '...restProps'] : []),
       ];
-      const imports = `import { RESTIFY_CONFIG } from 'redux-restify'`;
+      const imports = `import { RESTIFY_CONFIG } from 'redux-restify'
+import { templateApplyValues } from '$trood/helpers/templates'`;
 
       const entitiesNameConst = generic ? `  const ${linkName}ModelName = snakeToCamel(model.${name}._object)\n` : '';
       const entitiesConst = generic ? `  const ${linkName}GenericEnteties = restProps[${linkName}ModelName + 'Entities']\n` : '';
