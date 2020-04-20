@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { toCamel } = require('./common');
+const { toCamel, parseObject } = require('./common');
 
 function writeModelFile({ businessObject, boPath }) {
   const objectName = toCamel(businessObject.name);
@@ -26,7 +26,7 @@ function writeModelFile({ businessObject, boPath }) {
           '[\n' +
           [
             ...new Set(
-              field.linkMetaList.map(item => "      '" + toCamel(item) + "'")
+              field.linkMetaList.map((item) => "      '" + toCamel(item) + "'")
             ),
           ].join(',\n') +
           ',\n    ]';
@@ -56,24 +56,45 @@ function writeModelFile({ businessObject, boPath }) {
         return { ...memo, ['RestifyGenericForeignKey']: true };
       return memo;
     }, {});
+
     const restifyImportsKey = Object.keys(restifyImports);
+
     const resifyImportRow =
       restifyImportsKey.length > 0
         ? `import { ${restifyImportsKey.join(', ')} } from 'redux-restify'\n`
         : '';
+
     const modelFile =
       resifyImportRow +
       "import { messages } from '$trood/mainConstants'\n" +
       'export default {\n' +
       '  defaults: {\n' +
-      businessObject.fields.map(field => createFieldRow(field)).join('\n') +
+      businessObject.fields.map((field) => createFieldRow(field)).join('\n') +
       '\n  },\n' +
       "  name: '" +
       objectName +
-      '\',\n' +
+      "',\n" +
       '  deletion: {\n' +
       '    confirm: true,\n' +
       '    message: messages.deletionQuestion,\n' +
+      '  },\n' +
+      '  views: {\n' +
+      Object.keys(businessObject.views)
+        .map((key) => {
+          return '    ' + key + ": '" + businessObject.views[key] + "',";
+        })
+        .join('\n') +
+      '\n  },\n' +
+      '  meta: {\n' +
+      businessObject.fields.map(item=>{
+        const objectMeta = {}
+        Object.keys(item).forEach(key=>{
+          if (['type', 'linkMeta', 'linkMetaList', 'linkType', 'optional'].some(targetFiled=>targetFiled===key)){
+            objectMeta[key] = item[key]
+          }
+        })
+        return '    ' + item.name + ': ' + parseObject(objectMeta, '    ')
+      }).join(',\n') + ',\n' +
       '  },\n' +
       '}';
     return modelFile;
