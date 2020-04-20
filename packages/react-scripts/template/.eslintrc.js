@@ -9,6 +9,8 @@ module.exports = {
     semi: ['error', 'never'],
     'comma-dangle': ['error', 'always-multiline'],
     quotes: ['error', 'single'],
+    indent: ['error', 2, { "SwitchCase": 1 }],
+    'no-nested-ternary': 'error',
     // May be enable in future
     'jsx-a11y/click-events-have-key-events': 0,
     'jsx-a11y/no-static-element-interactions': 0,
