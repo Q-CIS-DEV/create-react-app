@@ -40,12 +40,12 @@ function addTrailingComma(string) {
   return string.replace(/(\w|}|'|])(\r\n|\r|\n)/gi, (_, $1, $2) => $1 + ',' + $2);
 }
 
-function parseObject(obj) {
+function parseObject(obj, spacing = '') {
   return addTrailingComma(
     util.inspect(obj, {
       depth: null,
       breakLength: 1,
     })
-  );
+  ).replace(/^/gm, spacing).slice(spacing.length);
 }
 module.exports = { ask, toCamel, makeBoFolder, addTrailingComma, parseObject };
