@@ -93,7 +93,7 @@ function writeModelFile({ businessObject, boPath }) {
             objectMeta[key] = item[key]
           }
         })
-        return '    ' + item.name + ': ' + parseObject(objectMeta, '    ')
+        return '    ' + toCamel(item.name) + ': ' + parseObject(objectMeta, '    ')
       }).join(',\n') + ',\n' +
       '  },\n' +
       '}';
