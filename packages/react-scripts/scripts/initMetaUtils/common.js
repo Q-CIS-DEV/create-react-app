@@ -4,9 +4,9 @@ const fs = require('fs');
 const util = require('util');
 
 const ask = (question, muted = false) =>
-  new Promise(resolve => {
+  new Promise((resolve) => {
     const mutableStdout = new Writable({
-      write: function(chunk, encoding, callback) {
+      write: function (chunk, encoding, callback) {
         if (!this.muted) process.stdout.write(chunk, encoding);
         callback();
       },
@@ -17,7 +17,7 @@ const ask = (question, muted = false) =>
       output: mutableStdout,
       terminal: true,
     });
-    rl.question(question + ':', function(answer) {
+    rl.question(question + ':', function (answer) {
       rl.close();
       // To add line after password
       if (muted) console.log('');
@@ -26,18 +26,26 @@ const ask = (question, muted = false) =>
     mutableStdout.muted = muted;
   });
 
-function toCamel(string) {
-  return string.replace(/(.)_+(.)/gi, (_, $1, $2) => $1 + $2.toUpperCase());
+const camelToSnake = (s = '') => s.replace(/([a-z])([A-Z]+)/g, '$1_$2');
+const camelToLowerSnake = (s) => camelToSnake(s).toLowerCase();
+function toCamel(s) {
+  return camelToLowerSnake(s).replace(
+    /(\B)_+(.)/g,
+    (match, g1, g2) => g1 + g2.toUpperCase()
+  );
 }
 
 function makeBoFolder(path) {
-  fs.mkdirSync(path, { recursive: true }, err => {
+  fs.mkdirSync(path, { recursive: true }, (err) => {
     throw new Error('Not possible to create path ' + path);
   });
 }
 
 function addTrailingComma(string) {
-  return string.replace(/(\w|}|'|])(\r\n|\r|\n)/gi, (_, $1, $2) => $1 + ',' + $2);
+  return string.replace(
+    /(\w|}|'|])(\r\n|\r|\n)/gi,
+    (_, $1, $2) => $1 + ',' + $2
+  );
 }
 
 function parseObject(obj, spacing = '') {
