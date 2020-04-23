@@ -54,8 +54,6 @@ function parseObject(obj, spacing = '') {
       depth: null,
       breakLength: 1,
     })
-  )
-    .replace(/^/gm, spacing)
-    .slice(spacing.length);
+  ).replace(/^/gm, spacing).slice(spacing.length);
 }
 module.exports = { ask, toCamel, makeBoFolder, addTrailingComma, parseObject };
