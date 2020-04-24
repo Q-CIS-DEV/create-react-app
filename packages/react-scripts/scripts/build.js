@@ -25,15 +25,9 @@ require('../config/env');
 const path = require('path');
 const fs = require('fs-extra');
 const paths = require('../config/paths');
-const checkRequiredFiles = require('react-dev-utils/checkRequiredFiles');
 const execSync = require('child_process').execSync;
 
 const isInteractive = process.stdout.isTTY;
-
-// Warn and crash if required files are missing
-if (!checkRequiredFiles([paths.appHtml])) {
-  process.exit(1);
-}
 
 // We require that you explicitly set browsers and do not fall back to
 // browserslist defaults.

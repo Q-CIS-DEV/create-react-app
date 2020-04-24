@@ -25,17 +25,11 @@ require('../config/env');
 const fs = require('fs-extra');
 const path = require('path');
 const chalk = require('chalk');
-const checkRequiredFiles = require('react-dev-utils/checkRequiredFiles');
 const paths = require('../config/paths');
 const chokidar = require('chokidar');
 const { execSync, spawn } = require('child_process');
 
 const isInteractive = process.stdout.isTTY;
-
-// Warn and crash if required files are missing
-if (!checkRequiredFiles([paths.appHtml])) {
-  process.exit(1);
-}
 
 if (process.env.HOST) {
   console.log(

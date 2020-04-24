@@ -31,5 +31,6 @@ module.exports = {
     'declaration-empty-line-before': null,
     'custom-property-empty-line-before': null,
     'font-family-no-missing-generic-family-keyword': null,
+    'value-keyword-case': null,
   }
 }

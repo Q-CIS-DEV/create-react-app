@@ -29,8 +29,8 @@ const initPackage = function() {
   const appPackage = require(path.join(appPath, 'package.json'));
   appPackage.devDependencies = {
     ...appPackage.devDependencies,
-    '@typescript-eslint/eslint-plugin': '^2.9.0',
-    '@typescript-eslint/parser': '^2.9.0',
+    '@typescript-eslint/eslint-plugin': '^2.22.0',
+    '@typescript-eslint/parser': '^2.22.0',
     'babel-eslint': '^10.0.3',
     'eslint': '^6.7.1',
     'eslint-config-react-app': '^5.0.2',
@@ -39,10 +39,11 @@ const initPackage = function() {
     'eslint-plugin-jsx-a11y': '^6.2.3',
     'eslint-plugin-react': '^7.17.0',
     'eslint-plugin-react-hooks': '^2.3.0',
+    'react-intl-po': '^2.2.2',
     'pre-commit': '^1.2.2',
-    'stylelint': '^12.0.0',
-    'stylelint-config-standard': '^19.0.0',
-    "trood-core-react-scripts": "1.1.8"
+    'stylelint': '^13.2.0',
+    'stylelint-config-standard': '^20.0.0',
+    "trood-core-react-scripts": "^1.2.0"
   }
 
   appPackage.scripts = {
