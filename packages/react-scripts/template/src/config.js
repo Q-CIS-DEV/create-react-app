@@ -9,7 +9,7 @@ export default {
   ],
   libraries: [
     {
-      name: 'TroodCoreBusinessComponents',
+      name: 'TroodCoreComponents',
     },
   ],
   services: {
