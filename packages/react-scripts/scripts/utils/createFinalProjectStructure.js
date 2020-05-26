@@ -30,6 +30,9 @@ const configFoldersToCopy = [
 ];
 
 module.exports = () => {
+  if (fs.existsSync(paths.finalProjectDir)) {
+    return Promise.resolve()
+  }
   return new Promise((resolve, reject) => {
     const clone = gitCloneRepo(
       'git@github.com:Q-CIS-DEV/trood-core-bundler-template.git',
@@ -91,7 +94,7 @@ module.exports = () => {
         );
 
         fs.removeSync(path.join(paths.finalProjectDir, '.git'))
-        
+
         resolve();
       }
     );

@@ -68,6 +68,20 @@ const refreshFiles = (event, filePath) => {
   }
 };
 
+const rebuildManifest = (event, filePath) => {
+  console.log('Rebuilding manifest...')
+  if (/.*(config|model|form)\.js$/.test(filePath)) {
+    spawn(
+      /^win/.test(process.platform) ? 'npm.cmd' : 'npm',
+      ['run', 'build-manifest'],
+      {
+        stdio: 'inherit',
+        cwd: paths.finalProjectDir,
+      }
+    )
+  }
+}
+
 const createFinalProjectStructure = require('./utils/createFinalProjectStructure');
 checkBrowsers(paths.appPath, isInteractive)
   .then(async () => {
@@ -84,6 +98,7 @@ checkBrowsers(paths.appPath, isInteractive)
       cwd: '.',
     });
     watcher.on('all', refreshFiles);
+    watcher.on('all', rebuildManifest);
 
     const startProcess = spawn(
       /^win/.test(process.platform) ? 'npm.cmd' : 'npm',
