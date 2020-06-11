@@ -65,8 +65,8 @@ function writeEditComponentFile({ businessObject, boPath }) {
       const imports = `import { RESTIFY_CONFIG } from 'redux-restify'
 import { templateApplyValues } from '$trood/helpers/templates'`;
 
-      const entitiesNameConst = generic ? `  const ${linkName}ModelName = snakeToCamel(model.${name}._object)\n` : '';
-      const entitiesConst = generic ? `  const ${linkName}GenericEnteties = restProps[${linkName}ModelName + 'Entities']\n` : '';
+      const entitiesNameConst = generic ? `${genericSpacing}  const ${linkName}ModelName = snakeToCamel(model.${name}._object)\n` : '';
+      const entitiesConst = generic ? `${genericSpacing}  const ${linkName}GenericEnteties = restProps[${linkName}ModelName + 'Entities']\n` : '';
       
       const entities = generic
         ? `${linkName}GenericEnteties`
@@ -75,31 +75,41 @@ import { templateApplyValues } from '$trood/helpers/templates'`;
         ? `restProps[${linkName}ModelName + 'ApiActions']`
         : `${linkName}ApiActions`;
 
-      const code = `${entitiesNameConst}${entitiesConst}  const [${linkName}Search, ${linkName}SearchSet] = useState('')
-  const ${linkName}ModelConfig = RESTIFY_CONFIG.registeredModels${
+      const genericVariables = `
+  let ${linkName}ModelConfig = {}
+  let ${linkName}Array = []
+  let ${linkName}ArrayIsLoading = false
+  let ${linkName}Template = ''
+  let ${linkName}NextPageAction = () => {}
+  if (model['${linkName}'] && model['${linkName}']._object) {\n`
+
+      const code = `  const [${linkName}Search, ${linkName}SearchSet] = useState('')
+${generic ? genericVariables : ''}${entitiesNameConst}${entitiesConst}
+${genericSpacing}  ${generic ? '' : 'const '}${linkName}ModelConfig = RESTIFY_CONFIG.registeredModels${
         generic ? `[${linkName}ModelName]` : `.${linkName}`
       }
-  const ${linkName}Template = ${linkName}ModelConfig.views.selectOption ||
-    ${linkName}ModelConfig.views.default ||
-    \`${linkName}/{\${${linkName}ModelConfig.idField}}\`
-  const ${linkName}ApiConfig = {
-    filter: {
-      q: ${linkName}Search 
-        ? \`eq(\${${linkName}ModelConfig.idField},\${${linkName}Search})\`
-        : '',
-      depth: 1,
-    },
-  }
-  const ${linkName}Array = ${entities}.getArray(${linkName}ApiConfig)
-  const ${linkName}ArrayIsLoading = ${entities}.getIsLoadingArray(
-    ${linkName}ApiConfig,
-  )
-  const ${linkName}NextPage = ${entities}.getNextPage(${linkName}ApiConfig)
-  const ${linkName}NextPageAction = () => {
-    if (${linkName}NextPage) {
-      ${apiActions}.loadNextPage(${linkName}ApiConfig)
-    }
-  }
+${genericSpacing}  ${generic ? '': 'const '}${linkName}Template = ${linkName}ModelConfig.views.selectOption ||
+${genericSpacing}    ${linkName}ModelConfig.views.default ||
+${genericSpacing}    \`${linkName}/{\${${linkName}ModelConfig.idField}}\`
+${genericSpacing}  const ${linkName}ApiConfig = {
+${genericSpacing}    filter: {
+${genericSpacing}      q: ${linkName}Search 
+${genericSpacing}        ? \`eq(\${${linkName}ModelConfig.idField},\${${linkName}Search})\`
+${genericSpacing}        : '',
+${genericSpacing}      depth: 1,
+${genericSpacing}    },
+${genericSpacing}  }
+${genericSpacing}  ${generic ? '': 'const '}${linkName}Array = ${entities}.getArray(${linkName}ApiConfig)
+${genericSpacing}  ${generic ? '': 'const '}${linkName}ArrayIsLoading = ${entities}.getIsLoadingArray(
+${genericSpacing}    ${linkName}ApiConfig,
+${genericSpacing}  )
+${genericSpacing}  const ${linkName}NextPage = ${entities}.getNextPage(${linkName}ApiConfig)
+${genericSpacing}  ${generic ? '': 'const '}${linkName}NextPageAction = () => {
+${genericSpacing}    if (${linkName}NextPage) {
+${genericSpacing}      ${apiActions}.loadNextPage(${linkName}ApiConfig)
+${genericSpacing}    }
+${genericSpacing}  }
+${generic ? '  }': ''}
       `;
 
       const selectProps = `${genericSpacing}          items: ${linkName}Array.map(item => ({
@@ -142,6 +152,8 @@ ${field.linkMetaList
         <ModalComponents.ModalSelect
           {...{
             fieldName: ['${name}', ${linkName}ModelConfig.idField],
+            label: '${name}',
+            disabled: !model['${name}'] || !model['${name}']._object,
 ${selectProps}
           }}
         />
