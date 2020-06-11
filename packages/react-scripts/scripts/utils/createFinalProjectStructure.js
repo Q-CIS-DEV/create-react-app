@@ -29,9 +29,66 @@ const configFoldersToCopy = [
   'translate',
 ];
 
+const copyProjectFiles = () => {
+  // Copy config files
+  configFilesToCopy.forEach(fileName => {
+    if (fs.existsSync(fileName)) {
+      const toPath = path.join(paths.finalProjectDir, fileName);
+      fs.copySync(fileName, toPath);
+    }
+  });
+
+  configFoldersToCopy.forEach(path => {
+    const fromPath = `${path}/`;
+    const toPath = `${paths.finalProjectDir}/${fromPath}`;
+    fs.copySync(fromPath, toPath, {
+      // We use filter function here to traverse directories, so we don't iterate 2 times
+      // Merge css files, so we can extend styles
+      filter: (src, dest) => {
+        if (cssFileRegexp.test(src)) {
+          copyAndMerge(src, dest);
+          return false;
+        }
+        return true;
+      },
+    });
+  })
+
+  // Prepare package.json
+  const appPackage = require(path.join(paths.appPath, 'package.json'));
+  const finalProjectPackagePath = path.join(
+    paths.finalProjectDir,
+    'package.json'
+  );
+  const finalProjectPackage = require(finalProjectPackagePath);
+
+  const finalPackage = dependeciesOptions.reduce(
+    (memo, dependecy) => ({
+      ...memo,
+      [dependecy]: {
+        ...finalProjectPackage[dependecy],
+        ...appPackage[dependecy],
+      },
+    }),
+    {
+      ...finalProjectPackage,
+      ...appPackage,
+      scripts: finalProjectPackage.scripts,
+    }
+  );
+
+  fs.writeFileSync(
+    finalProjectPackagePath,
+    JSON.stringify(finalPackage, null, 2) + os.EOL
+  );
+
+  fs.removeSync(path.join(paths.finalProjectDir, '.git'))
+}
+
 module.exports = () => {
   if (fs.existsSync(paths.finalProjectDir)) {
-    return Promise.resolve()
+    copyProjectFiles();
+    return Promise.resolve();
   }
   return new Promise((resolve, reject) => {
     const clone = gitCloneRepo(
@@ -41,62 +98,9 @@ module.exports = () => {
         checkout: process.env.TROOD_CORE_VERSION,
       },
       () => {
-        // Copy config files
-        configFilesToCopy.forEach(fileName => {
-          if (fs.existsSync(fileName)) {
-            const toPath = path.join(paths.finalProjectDir, fileName);
-            fs.copySync(fileName, toPath);
-          }
-        });
-
-        configFoldersToCopy.forEach(path => {
-          const fromPath = `${path}/`;
-          const toPath = `${paths.finalProjectDir}/${fromPath}`;
-          fs.copySync(fromPath, toPath, {
-            // We use filter function here to traverse directories, so we don't iterate 2 times
-            // Merge css files, so we can extend styles
-            filter: (src, dest) => {
-              if (cssFileRegexp.test(src)) {
-                copyAndMerge(src, dest);
-                return false;
-              }
-              return true;
-            },
-          });
-        })
-
-        // Prepare package.json
-        const appPackage = require(path.join(paths.appPath, 'package.json'));
-        const finalProjectPackagePath = path.join(
-          paths.finalProjectDir,
-          'package.json'
-        );
-        const finalProjectPackage = require(finalProjectPackagePath);
-
-        const finalPackage = dependeciesOptions.reduce(
-          (memo, dependecy) => ({
-            ...memo,
-            [dependecy]: {
-              ...finalProjectPackage[dependecy],
-              ...appPackage[dependecy],
-            },
-          }),
-          {
-            ...finalProjectPackage,
-            ...appPackage,
-            scripts: finalProjectPackage.scripts,
-          }
-        );
-
-        fs.writeFileSync(
-          finalProjectPackagePath,
-          JSON.stringify(finalPackage, null, 2) + os.EOL
-        );
-
-        fs.removeSync(path.join(paths.finalProjectDir, '.git'))
-
+        copyProjectFiles();
         resolve();
-      }
+      },
     );
   });
 };
