@@ -98,7 +98,7 @@ checkBrowsers(paths.appPath, isInteractive)
       cwd: '.',
     });
     watcher.on('all', refreshFiles);
-    watcher.on('all', rebuildManifest);
+    // watcher.on('all', rebuildManifest);
 
     const startProcess = spawn(
       /^win/.test(process.platform) ? 'npm.cmd' : 'npm',
