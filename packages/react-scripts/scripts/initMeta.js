@@ -1,4 +1,5 @@
 require('dotenv').config();
+const fs = require('fs');
 const getMeta = require('./initMetaUtils/getMeta');
 const { ask, makeBoFolder, toCamel } = require('./initMetaUtils/common');
 const writeModelFile = require('./initMetaUtils/writeModelFile.js');
@@ -29,6 +30,8 @@ async function initMeta() {
   meta.forEach(businessObject => {
     const objectName = toCamel(businessObject.name);
     const boPath = boCollectionPath + '/' + objectName;
+    const modelJsPath = boPath + '/model.js';
+    if (fs.existsSync(modelJsPath)) return;
     makeBoFolder(boPath);
     writeEditComponentFile({ businessObject, boPath })
     writeModelFile({ businessObject, boPath });

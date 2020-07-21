@@ -91,9 +91,10 @@ ${genericSpacing}  ${generic ? '' : 'const '}${linkName}ModelConfig = RESTIFY_CO
 ${genericSpacing}  ${generic ? '': 'const '}${linkName}Template = ${linkName}ModelConfig.views.selectOption ||
 ${genericSpacing}    ${linkName}ModelConfig.views.default ||
 ${genericSpacing}    \`${linkName}/{\${${linkName}ModelConfig.idField}}\`
-${genericSpacing}  const ${linkName}Query = ${linkName}ModelConfig.meta[${linkName}ModelConfig.idField].type === 'number'
-${genericSpacing}    ? \`eq(\${${linkName}ModelConfig.idField},\${${linkName}Search.replace(/[^0-9]/g, '')})\`
-${genericSpacing}    : \`like(\${${linkName}ModelConfig.idField},*\${${linkName}Search}*)\` 
+${genericSpacing}  const ${linkName}Query =
+${genericSpacing}    ${linkName}ModelConfig.meta[${linkName}ModelConfig.idField].type === 'number'
+${genericSpacing}      ? \`eq(\${${linkName}ModelConfig.idField},\${${linkName}Search.replace(/[^0-9]/g, '')})\`
+${genericSpacing}      : \`like(\${${linkName}ModelConfig.idField},*\${${linkName}Search}*)\` 
 ${genericSpacing}  const ${linkName}ApiConfig = {
 ${genericSpacing}    filter: {
 ${genericSpacing}      q: ${linkName}Search ? ${linkName}Query : '',
