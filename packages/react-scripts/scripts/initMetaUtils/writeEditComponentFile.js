@@ -21,14 +21,14 @@ function writeEditComponentFile({ businessObject, boPath }) {
     if (field.type === 'bool') {
       return {
         jsx: `      <ModalComponents.ModalCheckbox
-          {...{
-            fieldName: '${name}',
-            validate: {
-              checkOnBlur: true,
-              required: ${!field.optional},
-            },
-          }}
-        />`,
+        {...{
+          fieldName: '${name}',
+          validate: {
+            checkOnBlur: true,
+            required: ${!field.optional},
+          },
+        }}
+      />`,
       };
     }
 
@@ -43,8 +43,8 @@ function writeEditComponentFile({ businessObject, boPath }) {
           },
           validate: {
             checkOnBlur: true,${field.type === 'time' ? '' : `
-            requiredDate: ${!field.optional},`}${field.type === 'date' ? '' : `
-            requiredTime: ${!field.optional},`}
+            dateRequired: ${!field.optional},`}${field.type === 'date' ? '' : `
+            timeRequired: ${!field.optional},`}
           },
         }}
       />`,
@@ -91,11 +91,13 @@ ${genericSpacing}  ${generic ? '' : 'const '}${linkName}ModelConfig = RESTIFY_CO
 ${genericSpacing}  ${generic ? '': 'const '}${linkName}Template = ${linkName}ModelConfig.views.selectOption ||
 ${genericSpacing}    ${linkName}ModelConfig.views.default ||
 ${genericSpacing}    \`${linkName}/{\${${linkName}ModelConfig.idField}}\`
+${genericSpacing}  const ${linkName}Query =
+${genericSpacing}    ${linkName}ModelConfig.meta[${linkName}ModelConfig.idField].type === 'number'
+${genericSpacing}      ? \`eq(\${${linkName}ModelConfig.idField},\${${linkName}Search.replace(/[^0-9]/g, '')})\`
+${genericSpacing}      : \`like(\${${linkName}ModelConfig.idField},*\${${linkName}Search}*)\` 
 ${genericSpacing}  const ${linkName}ApiConfig = {
 ${genericSpacing}    filter: {
-${genericSpacing}      q: ${linkName}Search 
-${genericSpacing}        ? \`eq(\${${linkName}ModelConfig.idField},\${${linkName}Search})\`
-${genericSpacing}        : '',
+${genericSpacing}      q: ${linkName}Search ? ${linkName}Query : '',
 ${genericSpacing}      depth: 1,
 ${genericSpacing}    },
 ${genericSpacing}  }
@@ -121,9 +123,13 @@ ${genericSpacing}          emptyItemsLabel: ${linkName}ArrayIsLoading ? '' : und
 ${genericSpacing}          onScrollToEnd: ${linkName}NextPageAction,
 ${genericSpacing}          isLoading: ${linkName}ArrayIsLoading,${generic ? '' :`
 ${genericSpacing}          missingValueResolver: value => 
-${genericSpacing}            ${entities}.getById(value)[${linkName}ModelConfig.idField],`}
+${genericSpacing}            templateApplyValues(${linkName}Template, ${entities}.getById(value)),`}
 ${genericSpacing}          multi: ${multi},
-${genericSpacing}          clearable: ${field.optional},`;
+${genericSpacing}          clearable: ${field.optional},
+${genericSpacing}          validate: {
+${genericSpacing}            checkOnBlur: true,
+${genericSpacing}            required: ${!field.optional},
+${genericSpacing}          },`;
 
       if (generic) {
         return {

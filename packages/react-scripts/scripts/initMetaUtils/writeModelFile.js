@@ -66,17 +66,15 @@ function writeModelFile({ businessObject, boPath }) {
 
     const modelFile =
       resifyImportRow +
-      "import { messages } from '$trood/mainConstants'\n" +
+      "import localeService from '$trood/localeService'\n" +
       'export default {\n' +
       '  defaults: {\n' +
       businessObject.fields.map((field) => createFieldRow(field)).join('\n') +
       '\n  },\n' +
-      "  name: '" +
-      objectName +
-      "',\n" +
+      "  name: localeService.entityMessages." + objectName + "._object,\n" +
       '  deletion: {\n' +
       '    confirm: true,\n' +
-      '    message: messages.deletionQuestion,\n' +
+      '    message: localeService.generalMessages.deletionQuestion,\n' +
       '  },\n' +
       '  views: {\n' +
       Object.keys(businessObject.views)
